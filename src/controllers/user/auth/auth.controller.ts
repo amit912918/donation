@@ -214,7 +214,7 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
         existing = false;
         const userData = {
           name: 'NA',
-          password: 'thisisnewpassword', // Plain password, will be hashed in the pre-save hook
+          password: '12345', // Plain password, will be hashed in the pre-save hook
           mobile: contact,
           confirmed: true,
         };

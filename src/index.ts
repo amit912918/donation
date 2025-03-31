@@ -1,13 +1,11 @@
 import express, { NextFunction } from 'express';
 import { Request, Response } from "express";
-// import './helpers/common/init_mysql'; // for db connection
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { v1 } from './helpers/common/route_versions/v1';
 import { errorHandler } from './middlewares/error/errorHandler.middlewares';
 import path from "path";
 import connectDB from "./helpers/common/init_mongodb"
-// import "./helpers/service/db/modelSync"
 
 // Initialize dotenv
 dotenv.config();
