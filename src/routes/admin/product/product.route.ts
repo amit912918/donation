@@ -1,7 +1,7 @@
 import uploadSingleImage from "@/middlewares/files/product/product.file.middlewares";
 import * as productController from "../../../controllers/admin/product/product.controller";
 import { Router } from "express";
-import uploadThumbnailImages from "@/middlewares/files/product/thumbnail.file.middlewares";
+import uploadThumbnailImages from "@/middlewares/files/mission/thumbnail.file.middlewares";
 
 export const adminProductRouterV1 = Router();
 

@@ -30,6 +30,46 @@ export const createMission = async (req: Request, res: Response, next: NextFunct
     }
 };
 
+// 📌 Upload mission image
+export const uploadMissionImages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        if (!req.files || !Array.isArray(req.files)) {
+            return next(createError(404, "No files uploaded."));
+        }
+
+        // Files uploaded successfully
+        const uploadedFiles = (req.files as Express.Multer.File[]).map((file) => ({
+            originalName: file.originalname,
+            filename: file.filename,
+            path: file.path,
+        }));
+
+        res.status(200).json({
+            message: "Files uploaded successfully.",
+            files: uploadedFiles,
+        });
+    } catch (error: any) {
+        console.log("Add mission Images Error ::>>", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 Upload mission video
+export const uploadMissionVideo = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        if (!req.file) {
+            return next(createError(404, "No video uploaded."));
+        }
+
+        res.status(200).json({
+            message: "Video uploaded successfully",
+            file: req.file,
+        });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
 // 📌 Get all missions
 export const getAllMissions = async (_req: Request, res: Response, next: NextFunction) => {
     try {
@@ -44,6 +84,19 @@ export const getAllMissions = async (_req: Request, res: Response, next: NextFun
 export const getMissionById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const mission = await Mission.findById(req.params.id);
+        if (!mission) {
+            throw createError(404, "Mission not found");
+        }
+        res.status(200).json(mission);
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 Get latest mission
+export const getLatestMission = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const mission = await Mission.find().sort({ createdAt: -1 }).limit(5);;
         if (!mission) {
             throw createError(404, "Mission not found");
         }
