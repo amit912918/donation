@@ -73,8 +73,46 @@ export const uploadMissionVideo = async (req: Request, res: Response, next: Next
 // 📌 Get all missions
 export const getAllMissions = async (_req: Request, res: Response, next: NextFunction) => {
     try {
-        const missions = await Mission.find().sort({ createdAt: -1 });
-        res.status(200).json(missions);
+        // Extract query parameters with default values
+        const { page = 1, limit = 10, title = '' } = _req.query;
+
+        // Convert page and limit to numbers
+        const pageNumber = parseInt(page as string, 10);
+        const limitNumber = parseInt(limit as string, 10);
+
+        // Validate page and limit values
+        if (isNaN(pageNumber) || pageNumber < 1) {
+            throw createError(400, "Invalid page number. Page number must be a positive integer.");
+        }
+        if (isNaN(limitNumber) || limitNumber < 1) {
+            throw createError(400, "Invalid limit. Limit must be a positive integer.");
+        }
+
+        // Construct the search query
+        const searchQuery = title ? { title: new RegExp(title as string, 'i') } : {};
+
+        // Retrieve missions with pagination and sorting
+        const missions = await Mission.find(searchQuery)
+            .sort({ createdAt: -1 })
+            .skip((pageNumber - 1) * limitNumber)
+            .limit(limitNumber);
+
+        // Get the total count of documents matching the search query
+        const totalMissions = await Mission.countDocuments(searchQuery);
+
+        // Calculate total pages
+        const totalPages = Math.ceil(totalMissions / limitNumber);
+
+        // Respond with missions and pagination info
+        res.status(200).json({
+            missions,
+            pagination: {
+                totalMissions,
+                totalPages,
+                currentPage: pageNumber,
+                pageSize: limitNumber,
+            },
+        });
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
