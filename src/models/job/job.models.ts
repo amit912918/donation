@@ -1,5 +1,10 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+interface IDocumentInfo {
+    type: string;
+    size: number;
+    path_name: string;
+}
 interface IJob extends Document {
     jobTitle: string;
     jobDescription: string;
@@ -13,7 +18,7 @@ interface IJob extends Document {
     businessName: string;
     contactNumber: string;
     hideContact: boolean;
-    documents: string[]; // Array of document URLs
+    documents: IDocumentInfo[]; // Array of document URLs
 }
 
 const JobSchema: Schema = new Schema({
@@ -29,7 +34,13 @@ const JobSchema: Schema = new Schema({
     businessName: { type: String, required: true },
     contactNumber: { type: String, required: true },
     hideContact: { type: Boolean, default: false },
-    documents: { type: [String], default: [] },
+    documents: [
+        {
+            type: { type: String, required: true },
+            side: { type: Number, enum: ["Front", "Back"], required: true },
+            path_name: { type: String, required: true }
+        }
+    ]
 }, { timestamps: true });
 
 const Job = mongoose.model<IJob>("Job", JobSchema);

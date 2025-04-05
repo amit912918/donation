@@ -24,7 +24,13 @@ const MissionSchema: Schema = new Schema(
         address: { type: String, required: true },
         city: { type: String, required: true },
         contactNumber: { type: String, required: true },
-        documents: { type: [String], default: [] },
+        documents: [
+            {
+                type: { type: String, required: true },
+                side: { type: Number, enum: ["Front", "Back"], required: true },
+                path_name: { type: String, required: true }
+            }
+        ]
     },
     { timestamps: true } // Automatically adds createdAt and updatedAt
 );
