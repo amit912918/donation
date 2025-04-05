@@ -41,6 +41,6 @@ const upload = multer({
 });
 
 // Middleware for uploading multiple images
-const uploadThumbnailImages = upload.array("thumbnailImages", 5); // "images" is the field name, max 5 files
+const uploadThumbnailImages = upload.array("images", 5); // "images" is the field name, max 5 files
 
 export default uploadThumbnailImages;
