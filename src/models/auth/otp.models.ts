@@ -5,7 +5,7 @@ export interface IOtp extends Document {
     sentTo: string;
     isEmail: boolean;
     expiry: Date;
-    type: 'signup' | 'resetPassword' | 'forgotPassword' | 'addContact' | 'addEmail';
+    type: 'signup' | 'login' | 'resetPassword' | 'forgotPassword' | 'addContact' | 'addEmail';
     isValid: boolean;
     createdAt?: Date;
     updatedAt?: Date;
@@ -19,7 +19,7 @@ const otpSchema = new Schema<IOtp>(
         expiry: { type: Date, required: true },
         type: {
             type: String,
-            enum: ['signup', 'resetPassword', 'forgotPassword', 'addContact', 'addEmail'],
+            enum: ['signup', 'login', 'resetPassword', 'forgotPassword', 'addContact', 'addEmail'],
             required: true,
         },
         isValid: { type: Boolean, default: true },

@@ -34,14 +34,13 @@ export const sendOtp = async (req: Request, res: Response, next: NextFunction): 
     }
 
     // Validate OTP type
-    const validTypes: string[] = ["signup", "resetPassword", "forgotPassword"];
+    const validTypes: string[] = ["signup", "login", "resetPassword", "forgotPassword"];
     if (!validTypes.includes(type)) {
       throw createError(400, "Invalid OTP type");
     }
 
     // Validate contact format
     if (!validateContact(contact, isEmail)) {
-      // return res.status(400).json({ error: "Invalid contact format" });
       throw createError(400, "Invalid contact format");
     }
 
@@ -52,10 +51,10 @@ export const sendOtp = async (req: Request, res: Response, next: NextFunction): 
         ? await User.findOne({ email: contact })
         : await User.findOne({ mobile: contact });
 
-      // if (existingUser) {
-      //   return res.status(400).json({ error: "User already exists with this contact" });
-      // }
-    } else if (type === "resetPassword" || type === "forgotPassword") {
+      if (existingUser) {
+        throw createError(400, "User already exists with this contactt");
+      }
+    } else if (type === "resetPassword" || type === "forgotPassword" || type === "login") {
       existingUser = isEmail
         ? await User.findOne({ email: contact })
         : await User.findOne({ mobile: contact });
@@ -184,7 +183,7 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
     }
 
     // Validate OTP type
-    const validTypes: string[] = ['signup', 'resetPassword', 'forgotPassword'];
+    const validTypes: string[] = ['signup', 'login', 'resetPassword', 'forgotPassword'];
     if (!validTypes.includes(type)) {
       throw createError(400, "Invalid OTP type");
     }
