@@ -41,7 +41,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use(errorHandler);
 
 // Use PORT from environment variables or fallback to 5000
-const PORT: number = parseInt(process.env.PORT || '5000', 10);
+const PORT: number = parseInt(process.env.PORT || '9000', 10);
 
 // Start the server
 app.listen(PORT, () => {
