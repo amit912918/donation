@@ -1,13 +1,15 @@
 import { NextFunction, Request, Response } from "express";
-import missionModels from "@/models/mission/mission.models";
 import Mission from "@/models/mission/mission.models";
 import { createError } from "@/helpers/common/backend.functions";
 import Donation from "@/models/mission/donate.models";
+import { RequestType } from "@/helpers/shared/shared.type";
+import mongoose from "mongoose";
 
 // 📌 Create a new mission
-export const donateToMission = async (req: Request, res: Response, next: NextFunction) => {
+export const donateToMission = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
-        const { missionId, userId, amount } = req.body;
+        const userId = req.payload?.appUserId;
+        const { missionId, amount } = req.body;
         // Find the mission
         const mission = await Mission.findById(missionId);
         if (!mission) {
@@ -60,6 +62,48 @@ export const getTopDonorOfTheWeek = async (req: Request, res: Response, next: Ne
         }
 
         res.status(200).json(topDonor[0]);
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 Get all donate by Id
+export const getAllDonateById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // const donation = await Donation.findById(req.params.id);
+        const donation = await Donation.aggregate([
+            { $match: { _id: new mongoose.Types.ObjectId(req.params.id) } },
+            {
+                $lookup: {
+                    from: 'profiles', // collection name (usually plural and lowercase)
+                    localField: 'user',
+                    foreignField: 'user',
+                    as: 'profile'
+                }
+            },
+            { $unwind: '$profile' },
+            {
+                $lookup: {
+                    from: 'users',                 // collection name
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'userDetails'
+                }
+            },
+            { $unwind: '$userDetails' },
+            {
+                $project: {
+                    // include other fields from donation as needed
+                    image: '$profile.image',
+                    amount: 1,
+                    name: '$userDetails.name'
+                }
+            }
+        ]);
+        if (!donation) {
+            return next(createError(404, "Donation not found"));
+        }
+        res.status(200).json(donation);
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }

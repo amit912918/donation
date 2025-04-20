@@ -2,30 +2,60 @@ import { NextFunction, Request, Response } from "express";
 import missionModels from "@/models/mission/mission.models";
 import Mission from "@/models/mission/mission.models";
 import { createError } from "@/helpers/common/backend.functions";
+import bankdetailsModels from "@/models/mission/bankdetails.models";
+import { missionSchema } from "@/helpers/joi/mission/mission.joi";
+import { IMissionData } from "@/helpers/interface/mission/mission.interface";
+import mongoose from "mongoose";
+import { RequestType } from "@/helpers/shared/shared.type";
 
-// 📌 Create a new mission
-export const createMission = async (req: Request, res: Response, next: NextFunction) => {
+// 📌 Create a new mission with transaction
+export const createMission = async (req: RequestType, res: Response, next: NextFunction) => {
+    const session = await mongoose.startSession();
+
     try {
-        const { title, description, photos, videoUrl, address, city, contactNumber, documents } = req.body;
+        const { error, value } = missionSchema.validate(req.body);
+        if (error) return next(createError(400, error.details[0].message || "Missing some field"));
 
-        if (!title || !description || !address || !city || !contactNumber) {
-            throw createError(400, "All required fields must be filled");
-        }
+        session.startTransaction();
 
+        const data: IMissionData = value;
+
+        // 📍 Create mission
         const newMission = new Mission({
-            title,
-            description,
-            photos,
-            videoUrl,
-            address,
-            city,
-            contactNumber,
-            documents,
+            title: data.title,
+            description: data.description,
+            photos: data.photos,
+            videoUrl: data.videoUrl,
+            address: data.address,
+            memberCount: data.memberCount,
+            city: data.city,
+            contactNumber: data.contactNumber,
+            documents: data.documents,
         });
 
-        await newMission.save();
+        await newMission.save({ session });
+
+        // 📍 Create bank entry
+        const newBankEntry = new bankdetailsModels({
+            accountNumber: data.accountNumber,
+            ifscCode: data.ifscCode,
+            accountHolderName: data.accountHolderName,
+            bankName: data.bankName,
+            upiId: data.upiId,
+            userId: new mongoose.Types.ObjectId(req.payload?.appUserId) // cast to ObjectId
+        });
+
+        await newBankEntry.save({ session });
+
+        // ✅ Commit if all goes well
+        await session.commitTransaction();
+        session.endSession();
+
         res.status(201).json({ message: "Mission created successfully", newMission });
+
     } catch (error: any) {
+        await session.abortTransaction();
+        session.endSession();
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };

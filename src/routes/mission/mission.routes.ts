@@ -3,10 +3,11 @@ import uploadSingleImage from "@/middlewares/files/product/product.file.middlewa
 import uploadThumbnailImages from "@/middlewares/files/mission/thumbnail.file.middlewares";
 import { Router } from "express";
 import uploadVideo from "@/middlewares/files/mission/video.file.middlewares";
+import { verifyAccessToken } from "@/middlewares/jwt/jwt.middleware";
 
 const appMissionRouterV1 = Router();
 
-appMissionRouterV1.post('/create-mission', createMission);
+appMissionRouterV1.post('/create-mission', verifyAccessToken, createMission);
 appMissionRouterV1.post('/upload-mission-image', uploadThumbnailImages, uploadMissionImages);
 appMissionRouterV1.post('/upload-mission-video', uploadVideo.single("video"), uploadMissionVideo);
 appMissionRouterV1.get('/get-all-mission', getAllMissions);
