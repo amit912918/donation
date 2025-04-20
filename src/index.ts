@@ -26,9 +26,9 @@ app.use(cors(corsOptions));
 
 app.use("/assets", express.static(path.join(__dirname, "../assets")));
 
-// app.use('/', (req, res) => {
-//   res.status(200).send({message: "Server is running"})
-// });
+app.use('/', (req, res) => {
+  res.status(200).send({ message: "Server is running" })
+});
 
 app.use('/v1', v1);
 
