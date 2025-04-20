@@ -16,5 +16,5 @@ const DonationSchema: Schema = new Schema({
 });
 
 // ✅ Correct Export
-const Donation = mongoose.model<IDonation>("Mission", DonationSchema);
+const Donation = mongoose.model<IDonation>("Donation", DonationSchema);
 export default Donation;

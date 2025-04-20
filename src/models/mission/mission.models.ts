@@ -7,6 +7,7 @@ export interface IMission extends Document {
     photos: string[]; // Array of image URLs
     videoUrl?: string;
     address: string;
+    memberCount: number;
     city: string;
     contactNumber: string;
     documents?: string[]; // Array of document URLs
@@ -22,12 +23,13 @@ const MissionSchema: Schema = new Schema(
         photos: { type: [String], default: [] },
         videoUrl: { type: String },
         address: { type: String, required: true },
+        memberCount: { type: Number, required: true },
         city: { type: String, required: true },
         contactNumber: { type: String, required: true },
         documents: [
             {
                 type: { type: String, required: true },
-                side: { type: Number, enum: ["Front", "Back"], required: true },
+                side: { type: String, enum: ["Front", "Back"], required: true },
                 path_name: { type: String, required: true }
             }
         ]

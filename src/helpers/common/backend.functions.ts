@@ -4,7 +4,7 @@ import crypto from "crypto";
 
 dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET as string;
+const JWT_SECRET = process.env.JWT_ACCESS_TOKEN_SECRET as string;
 
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET is not defined in environment variables');
@@ -12,7 +12,7 @@ if (!JWT_SECRET) {
 
 // Function to generate JWT Token
 export const generateToken = (id: unknown): string => {
-  return jwt.sign({ id }, JWT_SECRET, {
+  return jwt.sign({ payloadData: { appUserId: id } }, JWT_SECRET, {
     expiresIn: '10d',
   });
 };

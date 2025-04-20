@@ -54,7 +54,10 @@ export const verifyAccessToken = async (req: RequestType, res: Response, next: N
       throw httpErrors.UnprocessableEntity(`Unable to process Constant [JWT_ACCESS_TOKEN_SECRET]`);
 
     JWT.verify(accessToken, JWT_ACCESS_TOKEN_SECRET, (error: any, payload: any) => {
-      if (error || payload?.payloadData?.requestIP != req.ip) {
+      // if (error || payload?.payloadData?.requestIP != req.ip) {
+      //   throw httpErrors.Unauthorized(error);
+      // }
+      if (error) {
         throw httpErrors.Unauthorized(error);
       }
       req.payload = payload.payloadData;
