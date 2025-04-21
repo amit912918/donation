@@ -1,11 +1,14 @@
 import express, { NextFunction } from 'express';
 import { Request, Response } from "express";
+import httpProxy from 'http-proxy';
+import morgan from 'morgan';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { v1 } from './helpers/common/route_versions/v1';
 import { errorHandler } from './middlewares/error/errorHandler.middlewares';
 import path from "path";
 import connectDB from "./helpers/common/init_mongodb"
+import logger from './helpers/service/log/logger';
 
 // Initialize dotenv
 dotenv.config();
@@ -13,6 +16,26 @@ connectDB();
 
 // Initialize Express app
 const app = express();
+
+// Create a proxy server
+const proxy = httpProxy.createProxyServer();
+const morganFormat = ':method :url :status :response-time ms';
+
+app.use(
+  morgan(morganFormat, {
+    stream: {
+      write: (message) => {
+        const logObject = {
+          method: message.split(' ')[0],
+          url: message.split(' ')[1],
+          status: message.split(' ')[2],
+          responseTime: message.split(' ')[3],
+        };
+        logger.info(JSON.stringify(logObject));
+      },
+    },
+  })
+);
 
 // Middleware to parse JSON
 app.use(express.json());
@@ -26,9 +49,9 @@ app.use(cors(corsOptions));
 
 app.use("/assets", express.static(path.join(__dirname, "../assets")));
 
-app.use('/', (req, res) => {
-  res.status(200).send({ message: "Server is running" })
-});
+// app.use('/', (req, res) => {
+//   res.status(200).send({ message: "Server is running" })
+// });
 
 app.use('/v1', v1);
 
