@@ -1,6 +1,5 @@
 import express, { NextFunction } from 'express';
 import { Request, Response } from "express";
-import httpProxy from 'http-proxy';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -17,8 +16,6 @@ connectDB();
 // Initialize Express app
 const app = express();
 
-// Create a proxy server
-const proxy = httpProxy.createProxyServer();
 const morganFormat = ':method :url :status :response-time ms';
 
 app.use(
