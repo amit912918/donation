@@ -52,16 +52,16 @@ export const sendOtp = async (req: Request, res: Response, next: NextFunction): 
         : await User.findOne({ mobile: contact });
 
       if (existingUser) {
-        throw createError(400, "User already exists with this contactt");
+        throw createError(400, "User already exists with this contact");
       }
     } else if (type === "resetPassword" || type === "forgotPassword" || type === "login") {
       existingUser = isEmail
         ? await User.findOne({ email: contact })
         : await User.findOne({ mobile: contact });
 
-      if (!existingUser) {
-        throw createError(400, "User not found with this contact");
-      }
+      // if (!existingUser) {
+      //   throw createError(400, "User not found with this contact");
+      // }
     }
 
     let otpValue: string;
@@ -234,10 +234,13 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
       return;
     }
     if (type === 'login') {
-      let existing = true;
       existingUser = await User.findOne({ mobile: contact });
-      const token = generateToken(existingUser._id);
-      res.status(200).json({ message: 'OTP verified successfully', token, user: existingUser, existing });
+      res.status(200).json({
+        message: 'OTP verified successfully',
+        token: existingUser ? generateToken(existingUser._id) : null,
+        user: existingUser ? existingUser : null,
+        existing: existingUser ? true : false
+      });
       return;
     }
 
