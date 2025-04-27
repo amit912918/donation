@@ -16,6 +16,8 @@ connectDB();
 // Initialize Express app
 const app = express();
 
+app.set('trust proxy', true);
+
 const morganFormat = ':method :url :status :response-time ms';
 
 app.use(
