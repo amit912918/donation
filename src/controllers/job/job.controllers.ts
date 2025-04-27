@@ -141,7 +141,7 @@ export const createOrUpdateJobInteraction = async (req: Request, res: Response, 
 // 📌 get job interactions
 export const getJobInteractions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const { jobId } = req.params;
+        const jobId = req.params.id;
 
         if (!jobId) {
             throw createError(400, "Job ID is required");
@@ -157,7 +157,7 @@ export const getJobInteractions = async (req: Request, res: Response, next: Next
 // 📌 get user interactions
 export const getUserInteractions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const { userId } = req.params;
+        const userId = req.params.id;
 
         if (!userId) {
             throw createError(400, "User ID is required");

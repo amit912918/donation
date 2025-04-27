@@ -37,7 +37,7 @@ const JobSchema: Schema = new Schema({
     documents: [
         {
             type: { type: String, required: true },
-            side: { type: Number, enum: ["Front", "Back"], required: true },
+            side: { type: String, enum: ["Front", "Back"], required: true },
             path_name: { type: String, required: true }
         }
     ]
