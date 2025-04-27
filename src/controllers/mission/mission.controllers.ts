@@ -88,11 +88,28 @@ export const uploadMissionImages = async (req: Request, res: Response, next: Nex
 export const uploadMissionVideo = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         if (!req.file) {
-            return next(createError(404, "No video uploaded."));
+            res.status(400).json({ message: 'No file uploaded' });
+            return;
         }
 
         res.status(200).json({
-            message: "Video uploaded successfully",
+            message: 'Video uploaded successfully',
+            file: req.file.filename,
+        });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 Upload mission file
+export const uploadMissionFiles = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        if (!req.file) {
+            return next(createError(404, "No file uploaded."));
+        }
+
+        res.status(200).json({
+            message: "File uploaded successfully",
             file: req.file,
         });
     } catch (error: any) {

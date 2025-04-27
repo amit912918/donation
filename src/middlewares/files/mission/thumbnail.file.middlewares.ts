@@ -2,18 +2,15 @@ import multer, { StorageEngine } from "multer";
 import path from "path";
 import fs from "fs";
 
-// Define the upload directory
-const uploadDirectory = path.resolve(__dirname, "../../../../assets/thumbnail");
+const uploadDirectory = path.resolve(__dirname, "../../../../assets/mission");
 
-// Ensure the upload directory exists
 if (!fs.existsSync(uploadDirectory)) {
   fs.mkdirSync(uploadDirectory, { recursive: true });
 }
 
-// Define the storage engine
 const storage: StorageEngine = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadDirectory); // Folder where images will be stored
+    cb(null, uploadDirectory);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
@@ -21,7 +18,6 @@ const storage: StorageEngine = multer.diskStorage({
   },
 });
 
-// Define the file filter to accept only images
 const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
   if (allowedMimeTypes.includes(file.mimetype)) {
@@ -31,16 +27,15 @@ const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.
   }
 };
 
-// Configure the Multer upload middleware
 const upload = multer({
   storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit per file
+    fileSize: 5 * 1024 * 1024,
   },
   fileFilter,
 });
 
 // Middleware for uploading multiple images
-const uploadThumbnailImages = upload.array("images", 5); // "images" is the field name, max 5 files
+const missionImagesMiddleware = upload.array("images", 5);
 
-export default uploadThumbnailImages;
+export default missionImagesMiddleware;
