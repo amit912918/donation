@@ -38,11 +38,10 @@ app.use(
 app.use(express.json());
 
 // CORS configuration
-const corsOptions: cors.CorsOptions = {
-  origin: ['http://localhost:3000'],
-  optionsSuccessStatus: 200,
-};
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: '*',  // Allow ALL origins
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],  // Allow ALL common HTTP methods
+}));
 
 app.use("/assets", express.static(path.join(__dirname, "../assets")));
 
