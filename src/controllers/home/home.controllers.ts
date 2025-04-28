@@ -30,6 +30,31 @@ export const createBanner = async (req: Request, res: Response, next: NextFuncti
     }
 };
 
+// 📌 Upload banner image
+export const uploadBannerImages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        if (!req.files || !Array.isArray(req.files)) {
+            return next(createError(404, "No files uploaded."));
+        }
+
+        // Files uploaded successfully
+        const uploadedFiles = (req.files as Express.Multer.File[]).map((file) => ({
+            originalName: file.originalname,
+            filename: file.filename,
+            path: file.path,
+        }));
+
+        res.status(200).json({
+            message: "Files uploaded successfully.",
+            files: uploadedFiles,
+        });
+    } catch (error: any) {
+        console.log("Add mission Images Error ::>>", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+
 // 📌 Get all banners
 export const getAllBanners = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
