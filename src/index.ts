@@ -9,11 +9,9 @@ import path from "path";
 import connectDB from "./helpers/common/init_mongodb"
 import logger from './helpers/service/log/logger';
 
-// Initialize dotenv
 dotenv.config();
 connectDB();
 
-// Initialize Express app
 const app = express();
 
 app.set('trust proxy', true);
@@ -36,13 +34,11 @@ app.use(
   })
 );
 
-// Middleware to parse JSON
 app.use(express.json());
 
-// CORS configuration
 app.use(cors({
-  origin: '*',  // Allow ALL origins
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],  // Allow ALL common HTTP methods
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
 }));
 
 app.use("/assets", express.static(path.join(__dirname, "../assets")));
@@ -53,18 +49,14 @@ app.use("/assets", express.static(path.join(__dirname, "../assets")));
 
 app.use('/v1', v1);
 
-// Catch-all route for undefined endpoints (optional)
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({ statusCode: 404, message: "Route not found" });
 });
 
-// Error-handling middleware
 app.use(errorHandler);
 
-// Use PORT from environment variables or fallback to 5000
 const PORT: number = parseInt(process.env.PORT || '9000', 10);
 
-// Start the server
 app.listen(PORT, () => {
   console.log(`|---: Server is Running at Port: ${PORT} :---|`);
 });

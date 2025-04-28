@@ -8,13 +8,13 @@ import { missionFileMiddleware } from "@/middlewares/files/mission/pdf.file.midd
 const appMissionRouterV1 = Router();
 
 appMissionRouterV1.post('/create-mission', verifyAccessToken, createMission);
-appMissionRouterV1.post('/upload-mission-images', missionImagesMiddleware, uploadMissionImages);
-appMissionRouterV1.post('/upload-mission-files', missionFileMiddleware, uploadMissionFiles);
-appMissionRouterV1.post('/upload-mission-video', uploadVideo.single("video"), uploadMissionVideo);
-appMissionRouterV1.get('/get-all-mission', getAllMissions);
-appMissionRouterV1.get('/get-mission-by-id/:id', getMissionById);
-appMissionRouterV1.put('/update-mission/:id', updateMission);
-appMissionRouterV1.delete('/delete-mission/:id', deleteMission);
-appMissionRouterV1.delete('/get-latest-mission', getLatestMission);
+appMissionRouterV1.post('/upload-mission-images', verifyAccessToken, missionImagesMiddleware, uploadMissionImages);
+appMissionRouterV1.post('/upload-mission-files', verifyAccessToken, missionFileMiddleware, uploadMissionFiles);
+appMissionRouterV1.post('/upload-mission-video', verifyAccessToken, uploadVideo.single("video"), uploadMissionVideo);
+appMissionRouterV1.get('/get-all-mission', verifyAccessToken, getAllMissions);
+appMissionRouterV1.get('/get-mission-by-id/:id', verifyAccessToken, getMissionById);
+appMissionRouterV1.put('/update-mission/:id', verifyAccessToken, updateMission);
+appMissionRouterV1.delete('/delete-mission/:id', verifyAccessToken, deleteMission);
+appMissionRouterV1.delete('/get-latest-mission', verifyAccessToken, getLatestMission);
 
 export default appMissionRouterV1;
