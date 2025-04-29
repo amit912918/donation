@@ -15,6 +15,6 @@ appMissionRouterV1.get('/get-all-mission', verifyAccessToken, getAllMissions);
 appMissionRouterV1.get('/get-mission-by-id/:id', verifyAccessToken, getMissionById);
 appMissionRouterV1.put('/update-mission/:id', verifyAccessToken, updateMission);
 appMissionRouterV1.delete('/delete-mission/:id', verifyAccessToken, deleteMission);
-appMissionRouterV1.delete('/get-latest-mission', verifyAccessToken, getLatestMission);
+appMissionRouterV1.get('/get-latest-mission', verifyAccessToken, getLatestMission);
 
 export default appMissionRouterV1;
