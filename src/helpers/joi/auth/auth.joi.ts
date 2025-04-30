@@ -4,8 +4,8 @@ import Joi from "joi";
 export const registerSchema = Joi.object({
     name: Joi.string().min(2).max(50).required(),
     gender: Joi.string().valid("Male", "Female", "Others").required(),
-    dob: Joi.string().required(),
-    address: Joi.string().min(2).max(500).required(),
+    dob: Joi.string().optional(),
+    address: Joi.string().optional(),
     city: Joi.string().min(2).max(50).required(),
     language: Joi.string().valid("English", "Hindi").default("English"),
     email: Joi.string().email().optional(),
