@@ -177,18 +177,15 @@ export const updateUserProfile = async (req: RequestType, res: Response, next: N
 
     const { name, gender, dob, address, city, language } = req.body;
 
-    // Optional: Validate incoming data
     const { error } = updateProfileSchema.validate({ name, gender, dob, address, city, language });
     if (error) {
       return next(createError(400, error.details[0].message));
     }
 
-    // Update User name if provided
     if (name) {
       await User.findByIdAndUpdate(userId, { name });
     }
 
-    // Update Profile
     const updatedProfile = await Profile.findOneAndUpdate(
       { user: userId },
       {
@@ -213,6 +210,37 @@ export const updateUserProfile = async (req: RequestType, res: Response, next: N
   } catch (error: any) {
     console.error("Error updating profile:", error);
     return next(createError(500, error.message || "Internal server error."));
+  }
+};
+
+export const getUserProfile = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = req.payload?.appUserId;
+    console.log(userId, "userId");
+
+    const user = await User.findById(userId).select('-password');
+    if (!user) {
+      return next(createError(404, 'User not found'));
+    }
+
+    const profile = await Profile.findOne({ user: userId });
+    if (!profile) {
+      return next(createError(404, 'Profile not found'));
+    }
+
+    res.status(200).json({
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email || null,
+        mobile: user.mobile || null,
+        confirmed: user.confirmed,
+      },
+      profile,
+    });
+  } catch (error: any) {
+    console.error('Error fetching user profile:', error);
+    return next(createError(500, error.message || 'Internal server error'));
   }
 };
 
