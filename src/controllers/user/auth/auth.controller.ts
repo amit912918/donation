@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import User from "@/models/auth/auth.models";
 import Profile from "@/models/auth/profile.models";
-import { registerSchema } from "@/helpers/joi/auth/auth.joi";
+import { registerSchema, updateProfileSchema } from "@/helpers/joi/auth/auth.joi";
 import { RegisterUserRequest } from "@/helpers/interface/auth/auth.interface";
 import { createError, generateOtp, generateToken, validateContact } from "@/helpers/common/backend.functions";
 import Otp from "@/models/auth/otp.models";
 import { sendSms } from "@/helpers/service/communication/sms";
 import { sendEmail } from "@/helpers/service/communication/email";
+import { RequestType } from "@/helpers/shared/shared.type";
 
 /**
  * @desc User Login
@@ -109,13 +110,15 @@ export const sendOtp = async (req: Request, res: Response, next: NextFunction): 
  * @route POST /auth/register-user
  * @access Public
  */
-export const registerUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const registerUser = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { name, gender, dob, address, city, language, email, mobile }: RegisterUserRequest = req.body;
 
     // Validate request body
     const { error } = registerSchema.validate({ name, gender, dob, address, city, language, email, mobile });
+
     if (error) {
+      console.log(error?.details[0].message);
       return next(createError(400, error.details[0].message));
     }
 
@@ -165,6 +168,51 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
   } catch (error: any) {
     console.error("Error in register user:", error);
     return next(createError(500, error?.message || "Internal server error"));
+  }
+};
+
+export const updateUserProfile = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = req.payload?.appUserId;
+
+    const { name, gender, dob, address, city, language } = req.body;
+
+    // Optional: Validate incoming data
+    const { error } = updateProfileSchema.validate({ name, gender, dob, address, city, language });
+    if (error) {
+      return next(createError(400, error.details[0].message));
+    }
+
+    // Update User name if provided
+    if (name) {
+      await User.findByIdAndUpdate(userId, { name });
+    }
+
+    // Update Profile
+    const updatedProfile = await Profile.findOneAndUpdate(
+      { user: userId },
+      {
+        ...(name && { name }),
+        ...(gender && { gender }),
+        ...(dob && { dob }),
+        ...(address && { address }),
+        ...(city && { city }),
+        ...(language && { Language: language }),
+      },
+      { new: true }
+    );
+
+    if (!updatedProfile) {
+      return next(createError(404, "Profile not found."));
+    }
+
+    res.status(200).json({
+      message: "Profile updated successfully.",
+      profile: updatedProfile,
+    });
+  } catch (error: any) {
+    console.error("Error updating profile:", error);
+    return next(createError(500, error.message || "Internal server error."));
   }
 };
 
