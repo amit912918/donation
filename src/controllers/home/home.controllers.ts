@@ -36,11 +36,12 @@ export const uploadBannerImages = async (req: Request, res: Response, next: Next
         if (!req.files || !Array.isArray(req.files)) {
             return next(createError(404, "No files uploaded."));
         }
+        console.log(req.files, "req.files")
 
         // Files uploaded successfully
         const uploadedFiles = (req.files as Express.Multer.File[]).map((file) => ({
             originalName: file.originalname,
-            filename: file.filename,
+            filename: `/assets/banner/${file.filename}`,
             path: file.path,
         }));
 

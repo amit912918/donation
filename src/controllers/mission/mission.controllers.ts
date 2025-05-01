@@ -70,7 +70,7 @@ export const uploadMissionImages = async (req: Request, res: Response, next: Nex
         // Files uploaded successfully
         const uploadedFiles = (req.files as Express.Multer.File[]).map((file) => ({
             originalName: file.originalname,
-            filename: file.filename,
+            filename: `/assets/mission/${file.filename}`,
             path: file.path,
         }));
 
@@ -94,7 +94,7 @@ export const uploadMissionVideo = async (req: Request, res: Response, next: Next
 
         res.status(200).json({
             message: 'Video uploaded successfully',
-            file: req.file.filename,
+            file: `/assets/mission/${req.file.filename}`,
         });
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
@@ -110,7 +110,7 @@ export const uploadMissionFiles = async (req: Request, res: Response, next: Next
 
         res.status(200).json({
             message: "File uploaded successfully",
-            file: req.file,
+            file: `/assets/mission/${req.file}`,
         });
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
