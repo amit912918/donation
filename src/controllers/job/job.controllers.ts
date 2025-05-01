@@ -1,11 +1,13 @@
 import { createError } from "@/helpers/common/backend.functions";
+import { RequestType } from "@/helpers/shared/shared.type";
 import User from "@/models/auth/auth.models";
 import Job from "@/models/job/job.models";
 import JobInteraction from "@/models/job/jobinteraction.models";
 import { Request, Response, NextFunction } from "express";
+import mongoose from "mongoose";
 
 // 📌 Create a new job
-export const createJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const createJob = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const {
             jobTitle, jobDescription, minimumQualification, jobType,
@@ -26,6 +28,7 @@ export const createJob = async (req: Request, res: Response, next: NextFunction)
             businessName,
             contactNumber,
             hideContact,
+            jobCreatedBy: new mongoose.Types.ObjectId(req?.payload?.appUserId),
             documents
         });
 
@@ -37,11 +40,12 @@ export const createJob = async (req: Request, res: Response, next: NextFunction)
 };
 
 // 📌 Get all job
-export const getAllJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getAllJobs = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { page = 1, limit = 10, jobType, jobLocation, experience, jobCity } = req.query;
 
         const filter: any = {};
+        filter.jobCreatedBy = new mongoose.Types.ObjectId(req?.payload?.appUserId);
         if (jobType) filter.jobType = jobType;
         if (jobLocation) filter.jobLocation = jobLocation;
         if (experience) filter.experience = experience;
@@ -165,6 +169,38 @@ export const getUserInteractions = async (req: Request, res: Response, next: Nex
 
         const interactions = await JobInteraction.find({ userId }).populate("jobId", "jobTitle businessName");
         res.status(200).json(interactions);
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 Get all job
+export const getJobForUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { page = 1, limit = 10, jobType, jobLocation, experience, jobCity } = req.query;
+
+        const filter: any = {};
+        if (jobType) filter.jobType = jobType;
+        if (jobLocation) filter.jobLocation = jobLocation;
+        if (experience) filter.experience = experience;
+        if (jobCity) filter.jobCity = jobCity;
+
+        const jobs = await Job.find(filter)
+            .skip((Number(page) - 1) * Number(limit))
+            .limit(Number(limit))
+            .sort({ createdAt: -1 });
+
+        const totalJobs = await Job.countDocuments(filter);
+
+        res.status(200).json({
+            jobs,
+            pagination: {
+                totalJobs,
+                totalPages: Math.ceil(totalJobs / Number(limit)),
+                currentPage: Number(page),
+                pageSize: Number(limit),
+            },
+        });
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }

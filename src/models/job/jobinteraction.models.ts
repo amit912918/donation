@@ -4,7 +4,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IJobInteraction extends Document {
     jobId: mongoose.Types.ObjectId;
     userId: mongoose.Types.ObjectId;
-    interactionType: "APPLIED" | "CONTACTED" | "INTERESTED";
+    interactionType: "APPLIED" | "CONTACTED" | "NOT INTERESTED";
     message?: string;
     createdAt: Date;
 }
@@ -15,7 +15,7 @@ const JobInteractionSchema: Schema = new Schema(
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         interactionType: {
             type: String,
-            enum: ["APPLIED", "CONTACTED", "INTERESTED"],
+            enum: ["APPLIED", "CONTACTED", "NOT INTERESTED"],
             required: true
         },
         message: { type: String, default: "" }, // Optional message from the user

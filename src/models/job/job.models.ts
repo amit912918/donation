@@ -34,6 +34,7 @@ const JobSchema: Schema = new Schema({
     businessName: { type: String, required: true },
     contactNumber: { type: String, required: true },
     hideContact: { type: Boolean, default: false },
+    jobCreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     documents: [
         {
             type: { type: String, required: true },
