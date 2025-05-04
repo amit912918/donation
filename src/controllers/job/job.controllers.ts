@@ -98,6 +98,170 @@ export const getAllJobs = async (req: RequestType, res: Response, next: NextFunc
     }
 };
 
+// 📌 Get all job
+export const getAllJobWithUser = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const allJobs = await Job.aggregate([
+            {
+                $lookup: {
+                    from: "users", // join with users collection
+                    localField: "jobCreatedBy", // field in Job
+                    foreignField: "_id",        // field in User
+                    as: "creator",
+                },
+            },
+            {
+                $unwind: {
+                    path: "$creator",
+                    preserveNullAndEmptyArrays: true,
+                },
+            },
+            {
+                $project: {
+                    jobTitle: 1,
+                    jobDescription: 1,
+                    minimumQualification: 1,
+                    jobType: 1,
+                    jobLocation: 1,
+                    experience: 1,
+                    salaryCriteria: 1,
+                    jobAddress: 1,
+                    jobCity: 1,
+                    businessName: 1,
+                    contactNumber: 1,
+                    hideContact: 1,
+                    isPublished: 1,
+                    createdAt: 1,
+                    "creator.name": 1,
+                    "creator.email": 1,
+                },
+            },
+        ]);
+
+        for (let i = 0; i < allJobs.length; i++) {
+            let item = allJobs[i];
+            const appliedUsers = await JobInteraction.aggregate([
+                {
+                    $match: {
+                        jobId: item._id, // Match specific job
+                    },
+                },
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "userId",
+                        foreignField: "_id",
+                        as: "appliedUser",
+                    },
+                },
+                {
+                    $unwind: {
+                        path: "$appliedUser",
+                        preserveNullAndEmptyArrays: true,
+                    },
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        userId: "$appliedUser._id",
+                        name: "$appliedUser.name",
+                        email: "$appliedUser.email",
+                        profile: "$appliedUser.profile",
+                        appliedAt: "$createdAt",
+                    },
+                },
+            ]);
+            allJobs[i].appliedUsers = appliedUsers;
+        }
+
+        // allJobs.map(async (item, index) => {
+        //     console.log(item._id, "item._id");
+        //     const appliedUsers = await JobInteraction.aggregate([
+        //         {
+        //             $match: {
+        //                 jobId: item._id, // Match specific job
+        //             },
+        //         },
+        //         {
+        //             $lookup: {
+        //                 from: "users",
+        //                 localField: "userId",
+        //                 foreignField: "_id",
+        //                 as: "appliedUser",
+        //             },
+        //         },
+        //         {
+        //             $unwind: {
+        //                 path: "$appliedUser",
+        //                 preserveNullAndEmptyArrays: true,
+        //             },
+        //         },
+        //         {
+        //             $project: {
+        //                 _id: 0,
+        //                 userId: "$appliedUser._id",
+        //                 name: "$appliedUser.name",
+        //                 email: "$appliedUser.email",
+        //                 appliedAt: "$createdAt", // From JobInteraction
+        //             },
+        //         },
+        //     ]);
+
+        //     console.log(appliedUsers, "appliedUsers");
+        // })
+
+        // const jobsWithApplicants = await Job.aggregate([
+        //     {
+        //         $lookup: {
+        //             from: 'jobinteractions', // Collection name in MongoDB (lowercase + plural)
+        //             localField: '_id',
+        //             foreignField: 'jobId',
+        //             as: 'interactions'
+        //         }
+        //     },
+        //     {
+        //         $unwind: {
+        //             path: '$interactions',
+        //             preserveNullAndEmptyArrays: true
+        //         }
+        //     },
+        //     {
+        //         $lookup: {
+        //             from: 'users',
+        //             localField: 'interactions.userId',
+        //             foreignField: '_id',
+        //             as: 'interactions.user'
+        //         }
+        //     },
+        //     {
+        //         $unwind: {
+        //             path: '$interactions.user',
+        //             preserveNullAndEmptyArrays: true
+        //         }
+        //     },
+        //     {
+        //         $group: {
+        //             _id: '$_id',
+        //             jobTitle: { $first: '$jobTitle' },
+        //             jobDescription: { $first: '$jobDescription' },
+        //             // include more job fields if needed
+        //             applicants: {
+        //                 $push: {
+        //                     user: '$interactions.user',
+        //                     interaction: '$interactions'
+        //                 }
+        //             }
+        //         }
+        //     }
+        // ]);
+        res.status(200).send({
+            allJobs
+        })
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
 // 📌 Get job by id
 export const getJobById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
