@@ -39,6 +39,32 @@ export const createJob = async (req: RequestType, res: Response, next: NextFunct
     }
 };
 
+// 📌 Update an existing job
+export const updateJob = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const jobId = req.params.id;
+
+        const updatedJob = await Job.findByIdAndUpdate(
+            jobId,
+            {
+                ...req.body,
+                jobUpdatedBy: new mongoose.Types.ObjectId(req?.payload?.appUserId),
+                updatedAt: new Date()
+            },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedJob) {
+            return next(createError(404, "Job not found"));
+        }
+
+        res.status(200).json({ message: "Job updated successfully", job: updatedJob });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+
 // 📌 Get all job
 export const getAllJobs = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -146,12 +172,19 @@ export const createOrUpdateJobInteraction = async (req: Request, res: Response, 
 export const getJobInteractions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const jobId = req.params.id;
+        let interactionTypes: any = req?.query?.interactionTypes;
 
         if (!jobId) {
             throw createError(400, "Job ID is required");
         }
 
-        const interactions = await JobInteraction.find({ jobId }).populate("userId", "name email");
+        const filter: any = { jobId };
+
+        if (interactionTypes && interactionTypes?.length > 0) {
+            filter.interactionType = { $in: JSON.parse(interactionTypes) };
+        }
+
+        const interactions = await JobInteraction.find(filter).populate("userId", "name email");
         res.status(200).json(interactions);
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));

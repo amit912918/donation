@@ -31,7 +31,7 @@ export const sendOtp = async (req: Request, res: Response, next: NextFunction): 
 
     // Validate input
     if (!contact || !type || typeof isEmail === "undefined") {
-      throw createError(400, "Contact, type, and isEmail are required");
+      throw createError(400, "Contact are required");
     }
 
     // Validate OTP type
@@ -59,10 +59,6 @@ export const sendOtp = async (req: Request, res: Response, next: NextFunction): 
       existingUser = isEmail
         ? await User.findOne({ email: contact })
         : await User.findOne({ mobile: contact });
-
-      // if (!existingUser) {
-      //   throw createError(400, "User not found with this contact");
-      // }
     }
 
     let otpValue: string;

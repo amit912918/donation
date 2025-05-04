@@ -20,32 +20,31 @@ export const createMission = async (req: RequestType, res: Response, next: NextF
 
         const data: IMissionData = value;
 
-        // 📍 Create mission
-        const newMission = new Mission({
-            title: data.title,
-            description: data.description,
-            photos: data.photos,
-            videoUrl: data.videoUrl,
-            address: data.address,
-            memberCount: data.memberCount,
-            city: data.city,
-            contactNumber: data.contactNumber,
-            documents: data.documents,
-        });
-
-        await newMission.save({ session });
-
         // 📍 Create bank entry
-        const newBankEntry = new bankdetailsModels({
+        const newBankEntry = {
             accountNumber: data.accountNumber,
             ifscCode: data.ifscCode,
             accountHolderName: data.accountHolderName,
             bankName: data.bankName,
             upiId: data.upiId,
             userId: new mongoose.Types.ObjectId(req.payload?.appUserId) // cast to ObjectId
+        };
+
+        // 📍 Create mission
+        const newMission = new Mission({
+            title: data.title,
+            description: data.description,
+            photos: data.photos,
+            videoUrl: data.videoUrl,
+            needyPersonAddress: data.needyPersonAddress,
+            needyPersonCity: data.needyPersonCity,
+            needyPersonCount: data.needyPersonCount,
+            contactNumber: data.contactNumber,
+            bankDetails: newBankEntry,
+            documents: data.documents,
         });
 
-        await newBankEntry.save({ session });
+        await newMission.save({ session });
 
         // ✅ Commit if all goes well
         await session.commitTransaction();

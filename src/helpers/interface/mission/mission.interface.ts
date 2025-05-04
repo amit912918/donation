@@ -1,13 +1,13 @@
 export interface IMissionData {
     title: string;
     description: string;
-    photos: string[]; // array of URLs or paths
+    photos: string[];
     videoUrl?: string;
-    address: string;
-    memberCount: number;
-    city: string;
+    needyPersonAddress: string;
+    needyPersonCity: string;
+    needyPersonCount: number;
     contactNumber: string;
-    documents?: string[]; // optional document URLs/paths
+    documents?: string[];
     accountNumber: string;
     ifscCode: string;
     accountHolderName: string;
