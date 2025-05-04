@@ -110,6 +110,37 @@ export const getJobById = async (req: Request, res: Response, next: NextFunction
     }
 };
 
+// 📌 Get job with user
+export const getJobWithUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const jobId = req.params.id;
+        let interactionTypes: any = req?.query?.interactionTypes;
+
+        if (!jobId) {
+            throw createError(400, "Job ID is required");
+        }
+
+        const job = await Job.findById(jobId);
+
+        const filter: any = { jobId };
+
+        if (interactionTypes && interactionTypes?.length > 0) {
+            filter.interactionType = { $in: JSON.parse(interactionTypes) };
+        }
+
+        const interactions = await JobInteraction.find(filter).populate("userId", "name email profile");
+
+        res.status(200).json({
+            error: false,
+            message: "Job with user get successfully!",
+            job,
+            interactions
+        });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
 // 📌 delete job
 export const deleteJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -123,9 +154,10 @@ export const deleteJob = async (req: Request, res: Response, next: NextFunction)
 };
 
 // 📌 create or update job interaction
-export const createOrUpdateJobInteraction = async (req: Request, res: Response, next: NextFunction) => {
+export const createOrUpdateJobInteraction = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
-        const { jobId, userId, interactionType, message } = req.body;
+        const userId = req?.payload?.appUserId;
+        const { jobId, interactionType, message } = req.body;
 
         if (!jobId || !userId || !interactionType) {
             throw createError(400, "Missing required fields");

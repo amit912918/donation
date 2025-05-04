@@ -124,10 +124,21 @@ export const registerUser = async (req: RequestType, res: Response, next: NextFu
       return next(createError(400, "User with this email or mobile already exists."));
     }
 
+    // Create user profile
+    const profileData: any = {
+      gender: gender,
+      dob: dob,
+      city: city,
+      address: address,
+      Language: language,
+      image: `https://ui-avatars.com/api/?uppercase=true&background=random&color=random&size=128`,
+    };
+
     // Create a new user
     const user = new User({
       name,
       confirmed: true,
+      profile: profileData,
       ...(email && { email }),
       ...(mobile && { mobile }),
     });
@@ -136,18 +147,6 @@ export const registerUser = async (req: RequestType, res: Response, next: NextFu
 
     // Generate token
     const token = generateToken(user._id);
-
-    // Create user profile
-    await Profile.create({
-      user: user._id,
-      name: user.name,
-      gender: gender,
-      dob: dob,
-      city: city,
-      address: address,
-      Language: language,
-      image: `https://ui-avatars.com/api/?uppercase=true&name=${user.name}&background=random&color=random&size=128`,
-    });
 
     // Return success response
     res.status(201).json({
@@ -171,33 +170,35 @@ export const updateUserProfile = async (req: RequestType, res: Response, next: N
   try {
     const userId = req.payload?.appUserId;
 
-    const { name, gender, dob, address, city, language } = req.body;
+    const { name, gender, dob, address, city, Language } = req.body;
 
-    const { error } = updateProfileSchema.validate({ name, gender, dob, address, city, language });
+    const { error } = updateProfileSchema.validate({ name, gender, dob, address, city, Language });
     if (error) {
       return next(createError(400, error.details[0].message));
     }
 
-    if (name) {
-      await User.findByIdAndUpdate(userId, { name });
+    const updateData: any = {};
+
+    if (name) updateData.name = name;
+
+    // Only include profile subfields if any are provided
+    const profileUpdates: any = {};
+    if (gender) profileUpdates.gender = gender;
+    if (dob) profileUpdates.dob = dob;
+    if (address) profileUpdates.address = address;
+    if (city) profileUpdates.city = city;
+    if (Language) profileUpdates.Language = Language;
+
+    if (Object.keys(profileUpdates).length > 0) {
+      updateData.profile = profileUpdates;
     }
 
-    const updatedProfile = await Profile.findOneAndUpdate(
-      { user: userId },
-      {
-        ...(name && { name }),
-        ...(gender && { gender }),
-        ...(dob && { dob }),
-        ...(address && { address }),
-        ...(city && { city }),
-        ...(language && { Language: language }),
-      },
-      { new: true }
-    );
+    const updatedProfile = await User.findByIdAndUpdate(userId, updateData, { new: true });
 
     if (!updatedProfile) {
-      return next(createError(404, "Profile not found."));
+      return next(createError(404, "User not found"));
     }
+
 
     res.status(200).json({
       message: "Profile updated successfully.",
@@ -219,20 +220,10 @@ export const getUserProfile = async (req: RequestType, res: Response, next: Next
       return next(createError(404, 'User not found'));
     }
 
-    const profile = await Profile.findOne({ user: userId });
-    if (!profile) {
-      return next(createError(404, 'Profile not found'));
-    }
-
     res.status(200).json({
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email || null,
-        mobile: user.mobile || null,
-        confirmed: user.confirmed,
-      },
-      profile,
+      error: false,
+      message: "Profile get successfully!",
+      user
     });
   } catch (error: any) {
     console.error('Error fetching user profile:', error);
@@ -293,13 +284,6 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
         await user.save();
 
         existingUser = user;
-
-        // Creating user profile in Profile model
-        await Profile.create({
-          user: user._id,
-          name: user.name,
-          image: `https://ui-avatars.com/api/?uppercase=true&name=${user.name}&background=random&color=random&size=128`,
-        });
       }
       const token = generateToken(existingUser._id);
       res.status(200).json({ message: 'OTP verified successfully', token, user: existingUser, existing });

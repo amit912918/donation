@@ -19,7 +19,7 @@ export const updateProfileSchema = Joi.object({
     dob: Joi.string().optional(),
     address: Joi.string().optional(),
     city: Joi.string().min(2).max(50).optional(),
-    language: Joi.string().valid("English", "Hindi").default("English"),
+    Language: Joi.string().valid("English", "Hindi").default("English"),
     email: Joi.string().email().optional(),
     mobile: Joi.string().pattern(/^[6-9]\d{9}$/).optional(),
     password: Joi.string().min(6).max(20).optional(),
