@@ -48,6 +48,7 @@ export interface ISibling {
 }
 
 export interface IBiodata extends Document {
+    profileCreatedById: mongoose.Types.ObjectId;
     profileCreatedBy: string;
     relationWithCandiate: string;
     profileCount: string;
@@ -84,6 +85,7 @@ const SiblingSchema = new Schema({
 });
 
 const BiodataSchema: Schema = new Schema<IBiodata>({
+    profileCreatedById: { type: mongoose.Schema.Types.ObjectId, ref: "Job", required: true },
     profileCreatedBy: { type: String, required: true },
     relationWithCandiate: { type: String, required: true },
     profileCount: { type: String, required: true },
@@ -91,23 +93,23 @@ const BiodataSchema: Schema = new Schema<IBiodata>({
     contact: { type: String, required: true },
     candidate: [CandidateSchema],
     gotraDetails: {
-        selfGotra: { type: String, required: true },
-        maaGotra: { type: String, required: true },
-        dadiGotra: { type: String, required: true },
+        selfGotra: { type: String },
+        maaGotra: { type: String },
+        dadiGotra: { type: String },
         naniGotra: { type: String },
         additionalGotra: { type: Object },
     },
     familyDetails: {
-        fatherName: { type: String, required: true },
-        fatherOccupation: { type: String, required: true },
-        motherName: { type: String, required: true },
-        motherOccupation: { type: String, required: true },
-        grandfatherName: { type: String, required: true },
-        grandfatherOccupation: { type: String, required: true },
+        fatherName: { type: String },
+        fatherOccupation: { type: String },
+        motherName: { type: String },
+        motherOccupation: { type: String },
+        grandfatherName: { type: String },
+        grandfatherOccupation: { type: String },
         siblings: [SiblingSchema],
-        familyLivingIn: { type: String, required: true },
-        elderBrotherName: { type: String, required: true },
-        elderBrotherOccupation: { type: String, required: true },
+        familyLivingIn: { type: String },
+        elderBrotherName: { type: String },
+        elderBrotherOccupation: { type: String },
         additionalInfo: { type: String },
     }
 }, { timestamps: true });
