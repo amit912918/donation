@@ -18,6 +18,7 @@ interface IJob extends Document {
     businessName: string;
     contactNumber: string;
     hideContact: boolean;
+    isPublished: boolean;
     documents: IDocumentInfo[]; // Array of document URLs
 }
 
@@ -34,6 +35,7 @@ const JobSchema: Schema = new Schema({
     businessName: { type: String, required: true },
     contactNumber: { type: String, required: true },
     hideContact: { type: Boolean, default: false },
+    isPublished: { type: Boolean, default: true },
     jobCreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     documents: [
         {

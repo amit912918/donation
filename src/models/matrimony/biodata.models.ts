@@ -2,15 +2,17 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ICandidate extends Document {
     name: string;
-    gender: string;
+    nickName?: string;
+    gender?: string;
     dob: string;
     address: string;
     city: string;
-    email?: string;
     mobile: string;
+    email?: string;
     qualification: string;
     college: string;
     occupation: string;
+    language?: string;
     serviceTypes: string[];
     maritalStatus: string;
     assetInfo: string;
@@ -20,29 +22,30 @@ export interface ICandidate extends Document {
     photo?: string;
 }
 
-const CandidateSchema: Schema = new Schema(
-    {
-        name: { type: String, required: true },
-        gender: { type: String, required: true },
-        dob: { type: String, required: true },
-        address: { type: String, required: true },
-        city: { type: String, required: true },
-        email: { type: String },
-        mobile: { type: String, required: true },
-        qualification: { type: String, required: true },
-        college: { type: String, required: true },
-        occupation: { type: String, required: true },
-        serviceTypes: [{ type: String }],
-        maritalStatus: { type: String, required: true },
-        assetInfo: { type: String, required: true },
-        drink: { type: String, required: true },
-        smoke: { type: String, required: true },
-        food: { type: String, required: true },
-        photo: { type: String },
-    },
-    { timestamps: true }
-);
+const CandidateSchema: Schema = new Schema({
+    name: { type: String, required: true },
+    nickName: { type: String },
+    dob: { type: String, required: true },
+    address: { type: String, required: true },
+    city: { type: String, required: true },
+    mobile: { type: String, required: true },
+    qualification: { type: String, required: true },
+    college: { type: String, required: true },
+    occupation: { type: String, required: true },
+    language: { type: String, default: "English" },
+    serviceTypes: [{ type: String }],
+    maritalStatus: { type: String, required: true },
+    assetInfo: { type: String, required: true },
+    drink: { type: String, required: true },
+    smoke: { type: String, required: true },
+    food: { type: String, required: true },
+    photo: { type: String },
+}, { timestamps: true });
 
+export interface ISibling {
+    name: string;
+    occupation: string;
+}
 
 export interface IBiodata extends Document {
     profileCreatedBy: string;
@@ -50,13 +53,13 @@ export interface IBiodata extends Document {
     profileCount: string;
     gender: string;
     contact: string;
-    candidate1: [ICandidate]
+    candidate: ICandidate[];
     gotraDetails: {
-        candidate1Gotra: string;
-        candidate2Gotra: string;
-        nativePlace: string;
-        additionalGotra1: string;
-        additionalGotra2: string;
+        selfGotra: string;
+        maaGotra: string;
+        dadiGotra: string;
+        naniGotra?: string;
+        additionalGotra?: Record<string, any>;
     };
     familyDetails: {
         fatherName: string;
@@ -65,18 +68,18 @@ export interface IBiodata extends Document {
         motherOccupation: string;
         grandfatherName: string;
         grandfatherOccupation: string;
-        siblings: {
-            name: string;
-            occupation: string;
-        }[];
+        siblings: ISibling[];
         familyLivingIn: string;
+        elderBrotherName: string;
+        elderBrotherOccupation: string;
         additionalInfo?: string;
     };
     createdAt?: Date;
+    updatedAt?: Date;
 }
 
 const SiblingSchema = new Schema({
-    name: String,
+    siblingName: String,
     occupation: String,
 });
 
@@ -86,13 +89,13 @@ const BiodataSchema: Schema = new Schema<IBiodata>({
     profileCount: { type: String, required: true },
     gender: { type: String, required: true },
     contact: { type: String, required: true },
-    candidate1: [CandidateSchema],
+    candidate: [CandidateSchema],
     gotraDetails: {
-        candidate1Gotra: { type: String, required: true },
-        candidate2Gotra: { type: String, required: true },
-        nativePlace: { type: String, required: true },
-        additionalGotra1: { type: String },
-        additionalGotra2: { type: String },
+        selfGotra: { type: String, required: true },
+        maaGotra: { type: String, required: true },
+        dadiGotra: { type: String, required: true },
+        naniGotra: { type: String },
+        additionalGotra: { type: Object },
     },
     familyDetails: {
         fatherName: { type: String, required: true },
@@ -103,8 +106,12 @@ const BiodataSchema: Schema = new Schema<IBiodata>({
         grandfatherOccupation: { type: String, required: true },
         siblings: [SiblingSchema],
         familyLivingIn: { type: String, required: true },
+        elderBrotherName: { type: String, required: true },
+        elderBrotherOccupation: { type: String, required: true },
         additionalInfo: { type: String },
     }
 }, { timestamps: true });
 
-export default mongoose.model<IBiodata>('Biodata', BiodataSchema);
+// ✅ Correct Export
+const Biodata = mongoose.model<IBiodata>("Biodata", BiodataSchema);
+export default Biodata;

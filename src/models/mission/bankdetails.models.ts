@@ -47,4 +47,6 @@ const BankDetailsSchema: Schema = new Schema<IBankDetails>(
     }
 );
 
-export default mongoose.models.BankDetails || model<IBankDetails>('BankDetails', BankDetailsSchema);
+export default BankDetailsSchema;
+
+// export default mongoose.models.BankDetails || model<IBankDetails>('BankDetails', BankDetailsSchema);
