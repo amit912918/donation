@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import bcrypt from 'bcryptjs';
+import profileSchema, { IProfile } from './profile.models';
 
 // Define TypeScript interface for User model
 export interface IUser extends Document {
@@ -12,6 +13,7 @@ export interface IUser extends Document {
     resetPasswordExpire?: Date;
     confirmed: boolean;
     agreeTermConditions: boolean;
+    profile: IProfile,
     blocked: boolean;
     matchPassword(enteredPassword: string): Promise<boolean>;
     encryptPassword(password: string): Promise<string>;
@@ -29,6 +31,7 @@ const userSchema = new Schema<IUser>(
         resetPasswordExpire: { type: Date },
         confirmed: { type: Boolean, default: true },
         agreeTermConditions: { type: Boolean, default: true },
+        profile: profileSchema,
         blocked: { type: Boolean, default: false },
     },
     { timestamps: true }

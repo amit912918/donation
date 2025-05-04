@@ -2,7 +2,6 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 // Define TypeScript interface for Profile model
 export interface IProfile extends Document {
-    name?: string;
     image?: string | null;
     address?: string;
     city?: string;
@@ -15,13 +14,11 @@ export interface IProfile extends Document {
     dob?: Date | null;
     PAN?: string | null;
     Language?: string | null;
-    user: mongoose.Schema.Types.ObjectId;
 }
 
 // Define Mongoose Schema
 const profileSchema = new Schema<IProfile>(
     {
-        name: { type: String },
         image: { type: String },
         address: { type: String },
         city: { type: String, default: '' },
@@ -37,16 +34,11 @@ const profileSchema = new Schema<IProfile>(
         occupation: { type: String, default: '' },
         dob: { type: Date, required: true },
         PAN: { type: String, default: '' },
-        Language: { type: String, default: 'English' },
-        user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: true, // Ensure that each profile is linked to a user
-        },
+        Language: { type: String, default: 'English' }
     },
     { timestamps: true }
 );
 
 // Create Profile model
-const Profile: Model<IProfile> = mongoose.model<IProfile>('Profile', profileSchema);
-export default Profile;
+// const Profile: Model<IProfile> = mongoose.model<IProfile>('Profile', profileSchema);
+export default profileSchema;
