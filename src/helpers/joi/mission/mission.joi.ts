@@ -7,7 +7,11 @@ export const missionSchema = Joi.object({
     videoUrl: Joi.string().optional(),
     needyPersonAddress: Joi.string().required(),
     needyPersonCity: Joi.string().required(),
-    needyPersonCount: Joi.number().integer().min(1).required(),
+    memberCount: Joi.object({
+        son: Joi.number().required(),
+        daughter: Joi.number().required()
+    }),
+    isWife: Joi.bool().required(),
     contactNumber: Joi.string().pattern(/^[0-9]{10}$/).required(),
     documents: Joi.array().optional(),
     accountNumber: Joi.string().required(),

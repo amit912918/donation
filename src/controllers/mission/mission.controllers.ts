@@ -38,7 +38,9 @@ export const createMission = async (req: RequestType, res: Response, next: NextF
             videoUrl: data.videoUrl,
             needyPersonAddress: data.needyPersonAddress,
             needyPersonCity: data.needyPersonCity,
-            needyPersonCount: data.needyPersonCount,
+            memberCount: data.memberCount,
+            isWife: data.isWife,
+            missionCreatedBy: new mongoose.Types.ObjectId(req?.payload?.appUserId),
             contactNumber: data.contactNumber,
             bankDetails: newBankEntry,
             documents: data.documents,
@@ -55,6 +57,7 @@ export const createMission = async (req: RequestType, res: Response, next: NextF
     } catch (error: any) {
         await session.abortTransaction();
         session.endSession();
+        console.log(error, "Error in create mission");
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
@@ -136,6 +139,54 @@ export const getAllMissions = async (_req: Request, res: Response, next: NextFun
 
         // Construct the search query
         const searchQuery = title ? { title: new RegExp(title as string, 'i') } : {};
+
+        // Retrieve missions with pagination and sorting
+        const missions = await Mission.find(searchQuery)
+            .sort({ createdAt: -1 })
+            .skip((pageNumber - 1) * limitNumber)
+            .limit(limitNumber);
+
+        // Get the total count of documents matching the search query
+        const totalMissions = await Mission.countDocuments(searchQuery);
+
+        // Calculate total pages
+        const totalPages = Math.ceil(totalMissions / limitNumber);
+
+        // Respond with missions and pagination info
+        res.status(200).json({
+            missions,
+            pagination: {
+                totalMissions,
+                totalPages,
+                currentPage: pageNumber,
+                pageSize: limitNumber,
+            },
+        });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 Get user missions
+export const getUserMissions = async (_req: RequestType, res: Response, next: NextFunction) => {
+    try {
+        // Extract query parameters with default values
+        const { page = 1, limit = 10, title = '' } = _req.query;
+
+        // Convert page and limit to numbers
+        const pageNumber = parseInt(page as string, 10);
+        const limitNumber = parseInt(limit as string, 10);
+
+        // Validate page and limit values
+        if (isNaN(pageNumber) || pageNumber < 1) {
+            throw createError(400, "Invalid page number. Page number must be a positive integer.");
+        }
+        if (isNaN(limitNumber) || limitNumber < 1) {
+            throw createError(400, "Invalid limit. Limit must be a positive integer.");
+        }
+
+        // Construct the search query
+        const searchQuery = title ? { title: new RegExp(title as string, 'i'), missionCreatedBy: new mongoose.Types.ObjectId(_req?.payload?.appUserId) } : {};
 
         // Retrieve missions with pagination and sorting
         const missions = await Mission.find(searchQuery)
