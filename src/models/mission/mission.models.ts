@@ -25,9 +25,14 @@ const MissionSchema: Schema = new Schema(
         videoUrl: { type: String },
         needyPersonAddress: { type: String, required: true },
         needyPersonCity: { type: String, required: true },
-        needyPersonCount: { type: Number, required: true },
+        memberCount: {
+            son: { type: Number, required: true },
+            daughter: { type: Number, required: true }
+        },
+        isWife: { type: Boolean, required: true, defaultValue: false },
         contactNumber: { type: String, required: true },
         bankDetails: BankDetailsSchema,
+        missionCreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         documents: [
             {
                 type: { type: String, required: true },

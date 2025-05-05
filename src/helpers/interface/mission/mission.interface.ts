@@ -5,7 +5,11 @@ export interface IMissionData {
     videoUrl?: string;
     needyPersonAddress: string;
     needyPersonCity: string;
-    needyPersonCount: number;
+    memberCount: {
+        son: number,
+        daughter: number
+    };
+    isWife: boolean,
     contactNumber: string;
     documents?: string[];
     accountNumber: string;

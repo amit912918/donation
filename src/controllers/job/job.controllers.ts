@@ -103,10 +103,15 @@ export const getAllJobWithUser = async (req: RequestType, res: Response, next: N
     try {
         const allJobs = await Job.aggregate([
             {
+                $match: {
+                    jobCreatedBy: new mongoose.Types.ObjectId(req?.payload?.appUserId)
+                },
+            },
+            {
                 $lookup: {
-                    from: "users", // join with users collection
-                    localField: "jobCreatedBy", // field in Job
-                    foreignField: "_id",        // field in User
+                    from: "users",
+                    localField: "jobCreatedBy",
+                    foreignField: "_id",
                     as: "creator",
                 },
             },
@@ -143,7 +148,7 @@ export const getAllJobWithUser = async (req: RequestType, res: Response, next: N
             const appliedUsers = await JobInteraction.aggregate([
                 {
                     $match: {
-                        jobId: item._id, // Match specific job
+                        jobId: item._id,
                     },
                 },
                 {
