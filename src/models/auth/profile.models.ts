@@ -32,7 +32,7 @@ const profileSchema = new Schema<IProfile>(
             default: 'Others',
         },
         occupation: { type: String, default: '' },
-        dob: { type: Date, required: true },
+        dob: { type: String, required: true },
         PAN: { type: String, default: '' },
         Language: { type: String, default: 'English' }
     },
