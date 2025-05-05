@@ -334,21 +334,19 @@ export const createOrUpdateJobInteraction = async (req: RequestType, res: Respon
         if (!user) throw createError(400, "User not found");
 
         // Check if an interaction already exists for the user & job
-        const existingInteraction = await JobInteraction.findOne({ jobId, userId });
+        const existingInteraction = await JobInteraction.findOne({ jobId, userId, interactionType });
 
         if (existingInteraction) {
-            // If user first contacted and now applying, update the interaction
-            if (existingInteraction.interactionType === "CONTACTED" && interactionType === "APPLIED") {
-                existingInteraction.interactionType = "APPLIED";
-                existingInteraction.message = message || existingInteraction.message;
-                await existingInteraction.save();
-                res.status(200).json({ message: "Interaction updated to APPLIED", interaction: existingInteraction });
-                return;
-            }
-            // Prevent duplicate actions (e.g., applying twice)
-            else if (existingInteraction.interactionType === interactionType) {
-                throw createError(400, `User already ${interactionType.toLowerCase()} for this job.`);
-            }
+            // if (existingInteraction.interactionType === "CONTACTED" && interactionType === "APPLIED") {
+            //     existingInteraction.interactionType = "APPLIED";
+            //     existingInteraction.message = message || existingInteraction.message;
+            //     await existingInteraction.save();
+            //     res.status(200).json({ message: "Interaction updated to APPLIED", interaction: existingInteraction });
+            //     return;
+            // }
+            // else if (existingInteraction.interactionType === interactionType) {
+            throw createError(400, `User already ${interactionType.toLowerCase()} for this job.`);
+            // }
         }
 
         // If no interaction exists, create a new one
