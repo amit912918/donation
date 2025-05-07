@@ -3,6 +3,7 @@ import { RequestType } from "@/helpers/shared/shared.type";
 import User from "@/models/auth/auth.models";
 import Job from "@/models/job/job.models";
 import JobInteraction from "@/models/job/jobinteraction.models";
+import JobReport from "@/models/job/jobreport.model";
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 
@@ -43,15 +44,22 @@ export const createJob = async (req: RequestType, res: Response, next: NextFunct
 export const updateJob = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const jobId = req.params.id;
+        const updatedField = req.body;
+
+        // const updatedJob = await Job.findByIdAndUpdate(
+        //     jobId,
+        //     {
+        //         ...req.body,
+        //         jobUpdatedBy: new mongoose.Types.ObjectId(req?.payload?.appUserId),
+        //         updatedAt: new Date()
+        //     },
+        //     { new: true, runValidators: true }
+        // );
 
         const updatedJob = await Job.findByIdAndUpdate(
-            jobId,
-            {
-                ...req.body,
-                jobUpdatedBy: new mongoose.Types.ObjectId(req?.payload?.appUserId),
-                updatedAt: new Date()
-            },
-            { new: true, runValidators: true }
+            new mongoose.Types.ObjectId(jobId),
+            { $set: updatedField },
+            { new: true } // returns the updated document
         );
 
         if (!updatedJob) {
@@ -171,6 +179,7 @@ export const getAllJobWithUser = async (req: RequestType, res: Response, next: N
                         userId: "$appliedUser._id",
                         name: "$appliedUser.name",
                         email: "$appliedUser.email",
+                        mobile: "$appliedUser.mobile",
                         profile: "$appliedUser.profile",
                         appliedAt: "$createdAt",
                     },
@@ -272,6 +281,23 @@ export const getJobById = async (req: Request, res: Response, next: NextFunction
     try {
         const job = await Job.findById(req.params.id);
         if (!job) throw createError(400, "Job not found");
+
+        res.status(200).json(job);
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 Unpublished job
+export const unpublishedJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const job = await Job.findById(req.params.id);
+        if (!job) throw createError(400, "Job not found");
+
+        await Job.updateOne(
+            { _id: req.params.id },
+            { $set: { isPublished: false } }
+        );
 
         res.status(200).json(job);
     } catch (error: any) {
@@ -432,6 +458,29 @@ export const getJobForUser = async (req: Request, res: Response, next: NextFunct
                 currentPage: Number(page),
                 pageSize: Number(limit),
             },
+        });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 Report on job
+export const jobReport = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { jobId, reason, details } = req.body;
+
+        const jobReport = new JobReport({
+            jobId: jobId,
+            reportedBy: new mongoose.Types.ObjectId(req?.payload?.appUserId),
+            reason: reason,
+            details: details
+        });
+
+        jobReport.save();
+
+        res.status(200).json({
+            error: false,
+            message: "Report on job created successfully"
         });
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
