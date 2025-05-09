@@ -354,6 +354,15 @@ export const createOrUpdateJobInteraction = async (req: RequestType, res: Respon
         const userId = req?.payload?.appUserId;
         const { jobId, interactionType, message } = req.body;
 
+        if (interactionType !== "Applied" && interactionType !== "Interested" && interactionType !== "Contacted") {
+            throw createError(400, "Interaction type is not valid");
+        }
+
+        let filter: any = {};
+        if (interactionType === "Applied") filter.isApplied = true;
+        if (interactionType === "Interested") filter.isInterested = true;
+        if (interactionType === "Contacted") filter.isContacted = true;
+
         if (!jobId || !userId || !interactionType) {
             throw createError(400, "Missing required fields");
         }
@@ -364,24 +373,28 @@ export const createOrUpdateJobInteraction = async (req: RequestType, res: Respon
         const user = await User.findById(userId);
         if (!user) throw createError(400, "User not found");
 
-        // Check if an interaction already exists for the user & job
-        const existingInteraction = await JobInteraction.findOne({ jobId, userId, interactionType });
+        const existingInteraction = await JobInteraction.findOne({ jobId, userId });
 
         if (existingInteraction) {
-            // if (existingInteraction.interactionType === "CONTACTED" && interactionType === "APPLIED") {
-            //     existingInteraction.interactionType = "APPLIED";
-            //     existingInteraction.message = message || existingInteraction.message;
-            //     await existingInteraction.save();
-            //     res.status(200).json({ message: "Interaction updated to APPLIED", interaction: existingInteraction });
-            //     return;
-            // }
-            // else if (existingInteraction.interactionType === interactionType) {
-            throw createError(400, `User already ${interactionType.toLowerCase()} for this job.`);
-            // }
+            await JobInteraction.findOneAndUpdate(
+                { jobId, userId },
+                filter,
+                { new: true }
+            );
+            // throw createError(400, `User already ${interactionType.toLowerCase()} for this job.`);
+            res.status(200).json({ message: "Interaction updated successfully" });
+            return;
         }
 
         // If no interaction exists, create a new one
-        const newInteraction = new JobInteraction({ jobId, userId, interactionType, message });
+        const newInteraction = new JobInteraction({
+            jobId,
+            userId,
+            isApplied: interactionType === "Applied" ? true : false,
+            isInterested: interactionType === "Interested" ? true : false,
+            isContacted: interactionType === "Contacted" ? true : false,
+            message
+        });
         await newInteraction.save();
 
         res.status(201).json({ message: "Interaction recorded successfully", interaction: newInteraction });
