@@ -43,8 +43,10 @@ const CandidateSchema: Schema = new Schema({
 }, { timestamps: true });
 
 export interface ISibling {
+    siblingRelation: string;
     name: string;
     occupation: string;
+    maritalStatus: string;
 }
 
 export interface IBiodata extends Document {
@@ -71,8 +73,8 @@ export interface IBiodata extends Document {
         grandfatherOccupation: string;
         siblings: ISibling[];
         familyLivingIn: string;
-        elderBrotherName: string;
-        elderBrotherOccupation: string;
+        // elderBrotherName: string;
+        // elderBrotherOccupation: string;
         additionalInfo?: string;
     };
     createdAt?: Date;
@@ -80,8 +82,10 @@ export interface IBiodata extends Document {
 }
 
 const SiblingSchema = new Schema({
+    siblingRelation: String,
     siblingName: String,
     occupation: String,
+    maritalStatus: String
 });
 
 const BiodataSchema: Schema = new Schema<IBiodata>({
@@ -108,8 +112,8 @@ const BiodataSchema: Schema = new Schema<IBiodata>({
         grandfatherOccupation: { type: String },
         siblings: [SiblingSchema],
         familyLivingIn: { type: String },
-        elderBrotherName: { type: String },
-        elderBrotherOccupation: { type: String },
+        // elderBrotherName: { type: String },
+        // elderBrotherOccupation: { type: String },
         additionalInfo: { type: String },
     }
 }, { timestamps: true });

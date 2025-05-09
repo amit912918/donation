@@ -33,6 +33,7 @@ const MissionSchema: Schema = new Schema(
         contactNumber: { type: String, required: true },
         bankDetails: BankDetailsSchema,
         missionCreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+        isPublished: { type: Boolean, default: true },
         documents: [
             {
                 type: { type: String, required: true },
