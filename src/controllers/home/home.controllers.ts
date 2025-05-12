@@ -59,7 +59,7 @@ export const uploadBannerImages = async (req: Request, res: Response, next: Next
 // 📌 Get all banners
 export const getAllBanners = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const banners = await BannerModel.find().sort("sequence");
+        const banners = await BannerModel.find({ isActive: true }).sort("sequence");
         res.status(200).json(banners);
     } catch (error: any) {
         console.log("Error in get all banner", error);

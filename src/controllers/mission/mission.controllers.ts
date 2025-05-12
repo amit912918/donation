@@ -65,6 +65,7 @@ export const createMission = async (req: RequestType, res: Response, next: NextF
 // 📌 Upload mission image
 export const uploadMissionImages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+        console.log(req.body.type, "image");
         if (!req.files || !Array.isArray(req.files)) {
             return next(createError(404, "No files uploaded."));
         }
