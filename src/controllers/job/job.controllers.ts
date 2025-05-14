@@ -176,6 +176,9 @@ export const getAllJobWithUser = async (req: RequestType, res: Response, next: N
                 {
                     $project: {
                         _id: 0,
+                        isApplied: 1,
+                        isContacted: 1,
+                        isInterested: 1,
                         userId: "$appliedUser._id",
                         name: "$appliedUser.name",
                         email: "$appliedUser.email",
@@ -459,7 +462,8 @@ export const getJobForUser = async (req: Request, res: Response, next: NextFunct
         const jobs = await Job.find(filter)
             .skip((Number(page) - 1) * Number(limit))
             .limit(Number(limit))
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .select('title company location createdAt');
 
         const totalJobs = await Job.countDocuments(filter);
 
