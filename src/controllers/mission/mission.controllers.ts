@@ -190,10 +190,47 @@ export const getUserMissions = async (_req: RequestType, res: Response, next: Ne
         const searchQuery = title ? { title: new RegExp(title as string, 'i'), missionCreatedBy: new mongoose.Types.ObjectId(_req?.payload?.appUserId) } : {};
 
         // Retrieve missions with pagination and sorting
-        const missions = await Mission.find(searchQuery)
-            .sort({ createdAt: -1 })
-            .skip((pageNumber - 1) * limitNumber)
-            .limit(limitNumber);
+        // const missions = await Mission.find(searchQuery)
+        //     .sort({ createdAt: -1 })
+        //     .skip((pageNumber - 1) * limitNumber)
+        //     .limit(limitNumber);
+
+        const missions = await Mission.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'donations',
+                    localField: '_id',
+                    foreignField: 'mission',
+                    as: 'donations'
+                }
+            },
+            {
+                $addFields: {
+                    totalDonations: { $size: '$donations' },
+                    totalAmountDonated: {
+                        $sum: '$donations.amount'
+                    }
+                }
+            },
+            {
+                $project: {
+                    title: 1,
+                    description: 1,
+                    photos: 1,
+                    videoUrl: 1,
+                    createdAt: 1,
+                    totalDonations: 1,
+                    totalAmountDonated: 1
+                }
+            },
+            { $sort: { createdAt: -1 } },
+            { $skip: (pageNumber - 1) * limitNumber },
+            { $limit: limitNumber }
+        ]);
+
 
         // Get the total count of documents matching the search query
         const totalMissions = await Mission.countDocuments(searchQuery);
