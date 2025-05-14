@@ -4,6 +4,7 @@ import { createError } from "@/helpers/common/backend.functions";
 import Donation from "@/models/mission/donate.models";
 import { RequestType } from "@/helpers/shared/shared.type";
 import mongoose from "mongoose";
+import User from "@/models/auth/auth.models";
 
 // 📌 Create a new mission
 export const donateToMission = async (req: RequestType, res: Response, next: NextFunction) => {
@@ -45,7 +46,7 @@ export const getTopDonorOfTheWeek = async (req: Request, res: Response, next: Ne
             },
             {
                 $group: {
-                    _id: '$user',
+                    _id: '$user', // group by user ObjectId
                     totalDonated: { $sum: '$amount' }
                 }
             },
@@ -54,8 +55,30 @@ export const getTopDonorOfTheWeek = async (req: Request, res: Response, next: Ne
             },
             {
                 $limit: 10
+            },
+            {
+                $lookup: {
+                    from: 'users', // make sure this matches your actual collection name
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'userDetails'
+                }
+            },
+            {
+                $unwind: '$userDetails'
+            },
+            {
+                $project: {
+                    _id: 0,
+                    userId: '$_id',
+                    totalDonated: 1,
+                    name: '$userDetails.name',
+                    email: '$userDetails.email',
+                    profile: '$userDetails.profile'
+                }
             }
         ]);
+
 
         if (topDonor.length === 0) {
             throw createError(404, "No donations found for the current week.");
@@ -68,20 +91,12 @@ export const getTopDonorOfTheWeek = async (req: Request, res: Response, next: Ne
 };
 
 // 📌 Get all donate by Id
-export const getAllDonateById = async (req: Request, res: Response, next: NextFunction) => {
+export const getDonateById = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        console.log(req.params.id, "req.params.id");
         // const donation = await Donation.findById(req.params.id);
         const donation = await Donation.aggregate([
             { $match: { _id: new mongoose.Types.ObjectId(req.params.id) } },
-            {
-                $lookup: {
-                    from: 'profiles', // collection name (usually plural and lowercase)
-                    localField: 'user',
-                    foreignField: 'user',
-                    as: 'profile'
-                }
-            },
-            { $unwind: '$profile' },
             {
                 $lookup: {
                     from: 'users',                 // collection name
@@ -93,14 +108,46 @@ export const getAllDonateById = async (req: Request, res: Response, next: NextFu
             { $unwind: '$userDetails' },
             {
                 $project: {
-                    // include other fields from donation as needed
-                    image: '$profile.image',
+                    profile: '$userDetails.profile',
                     amount: 1,
                     name: '$userDetails.name'
                 }
             }
         ]);
-        if (!donation) {
+        console.log(donation, "donation");
+        if (donation.length === 0) {
+            return next(createError(404, "Donation not found"));
+        }
+        res.status(200).json(donation);
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 Get mission donation by mission id
+export const getMissionDonation = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const missionId = req.params.missionId;
+        const donation = await Donation.aggregate([
+            { $match: { mission: new mongoose.Types.ObjectId(missionId) } },
+            {
+                $lookup: {
+                    from: 'users',                 // collection name
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'userDetails'
+                }
+            },
+            { $unwind: '$userDetails' },
+            {
+                $project: {
+                    profile: '$userDetails.profile',
+                    amount: 1,
+                    name: '$userDetails.name'
+                }
+            }
+        ]);
+        if (donation.length === 0) {
             return next(createError(404, "Donation not found"));
         }
         res.status(200).json(donation);

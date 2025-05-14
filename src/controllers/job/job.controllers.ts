@@ -354,13 +354,13 @@ export const createOrUpdateJobInteraction = async (req: RequestType, res: Respon
         const userId = req?.payload?.appUserId;
         const { jobId, interactionType, message } = req.body;
 
-        if (interactionType !== "Applied" && interactionType !== "Interested" && interactionType !== "Contacted") {
+        if (interactionType !== "Applied" && interactionType !== "notInterested" && interactionType !== "Contacted") {
             throw createError(400, "Interaction type is not valid");
         }
 
         let filter: any = {};
         if (interactionType === "Applied") filter.isApplied = true;
-        if (interactionType === "Interested") filter.isInterested = true;
+        if (interactionType === "notInterested") filter.isInterested = true;
         if (interactionType === "Contacted") filter.isContacted = true;
 
         if (!jobId || !userId || !interactionType) {
