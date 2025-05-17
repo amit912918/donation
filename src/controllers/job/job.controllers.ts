@@ -449,7 +449,7 @@ export const getUserInteractions = async (req: Request, res: Response, next: Nex
 };
 
 // 📌 Get all job
-export const getJobForUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getJobForUser = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { page = 1, limit = 10, jobType, jobLocation, experience, jobCity } = req.query;
 
@@ -459,16 +459,38 @@ export const getJobForUser = async (req: Request, res: Response, next: NextFunct
         if (experience) filter.experience = experience;
         if (jobCity) filter.jobCity = jobCity;
 
+        const skip = (Number(page) - 1) * Number(limit);
+
         const jobs = await Job.find(filter)
-            .skip((Number(page) - 1) * Number(limit))
+            .skip(skip)
             .limit(Number(limit))
             .sort({ createdAt: -1 })
-            .select('title company location createdAt');
+            .select('jobTitle jobDescription jobLocation createdAt');
+
+        // Add interactions to jobs
+        const userId = req.payload?.appUserId;
+        if (!userId) {
+            throw createError(401, 'User ID missing in request payload');
+        }
+
+        const updatedJobs = await Promise.all(
+            jobs.map(async (job) => {
+                const interaction = await JobInteraction.findOne({
+                    jobId: job._id,
+                    userId: new mongoose.Types.ObjectId(userId),
+                }).select('_id isApplied isContacted isInterested');
+
+                return {
+                    ...job.toObject(),
+                    interaction,
+                };
+            })
+        );
 
         const totalJobs = await Job.countDocuments(filter);
 
         res.status(200).json({
-            jobs,
+            jobs: updatedJobs,
             pagination: {
                 totalJobs,
                 totalPages: Math.ceil(totalJobs / Number(limit)),
@@ -477,7 +499,7 @@ export const getJobForUser = async (req: Request, res: Response, next: NextFunct
             },
         });
     } catch (error: any) {
-        next(createError(error.status || 500, error.message || "Internal Server Error"));
+        next(createError(error.status || 500, error.message || 'Internal Server Error'));
     }
 };
 
