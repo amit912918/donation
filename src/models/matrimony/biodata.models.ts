@@ -57,6 +57,9 @@ export interface IBiodata extends Document {
     gender: string;
     contact: string;
     candidate: ICandidate[];
+    state: string;
+    city: string;
+    Bicholiya: mongoose.Types.ObjectId;
     gotraDetails: {
         selfGotra: string;
         maaGotra: string;
@@ -96,6 +99,9 @@ const BiodataSchema: Schema = new Schema<IBiodata>({
     gender: { type: String, required: true },
     contact: { type: String, required: true },
     candidate: [CandidateSchema],
+    state: { type: String, required: true },
+    city: { type: String, required: true },
+    Bicholiya: { type: mongoose.Schema.Types.ObjectId, required: true },
     gotraDetails: {
         selfGotra: { type: String },
         maaGotra: { type: String },

@@ -37,6 +37,16 @@ export const getTopDonorOfTheWeek = async (req: Request, res: Response, next: Ne
         startOfWeek.setDate(now.getDate() - dayOfWeek);
         startOfWeek.setHours(0, 0, 0, 0);
 
+        const donations = await Donation.find({
+            donatedAt: { $gte: startOfWeek, $lte: now }
+        });
+        const users = await User.find({
+            _id: { $in: [new mongoose.Types.ObjectId("681998c8be99d85e5faf7c4d"), new mongoose.Types.ObjectId("6818caba263f1e10901bb1bf")] }
+        }).lean();
+        console.log(users);
+
+        console.log(donations, "donations");
+
         // Aggregate donations within the current week
         const topDonor = await Donation.aggregate([
             {
@@ -46,7 +56,7 @@ export const getTopDonorOfTheWeek = async (req: Request, res: Response, next: Ne
             },
             {
                 $group: {
-                    _id: '$user', // group by user ObjectId
+                    _id: '$user',
                     totalDonated: { $sum: '$amount' }
                 }
             },
@@ -55,36 +65,40 @@ export const getTopDonorOfTheWeek = async (req: Request, res: Response, next: Ne
             },
             {
                 $limit: 10
-            },
-            {
-                $lookup: {
-                    from: 'users', // make sure this matches your actual collection name
-                    localField: '_id',
-                    foreignField: '_id',
-                    as: 'userDetails'
-                }
-            },
-            {
-                $unwind: '$userDetails'
-            },
-            {
-                $project: {
-                    _id: 0,
-                    userId: '$_id',
-                    totalDonated: 1,
-                    name: '$userDetails.name',
-                    email: '$userDetails.email',
-                    profile: '$userDetails.profile'
-                }
             }
         ]);
-
-
+        console.log(topDonor, "topDonar");
         if (topDonor.length === 0) {
             throw createError(404, "No donations found for the current week.");
         }
 
-        res.status(200).json(topDonor[0]);
+        const data = [];
+        for (let i = 0; i < topDonor.length; i++) {
+            const userId = topDonor[i]._id;
+            const totalDonated = topDonor[i].totalDonated;
+            console.log(userId, "userId");
+            const userData = await User.findById(userId).select({
+                name: 1,
+                email: 1,
+                mobile: 1,
+                'profile.image': 1,
+                'profile.address': 1,
+                'profile.city': 1,
+                'profile.gender': 1,
+                'profile.dob': 1
+            });
+            data.push({
+                totalDonated,
+                userData
+            })
+        }
+
+        res.status(200).json({
+            success: true,
+            error: false,
+            message: "Weekly brahmas fetch successfully",
+            data
+        });
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
