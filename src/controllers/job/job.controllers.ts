@@ -363,7 +363,7 @@ export const createOrUpdateJobInteraction = async (req: RequestType, res: Respon
 
         let filter: any = {};
         if (interactionType === "Applied") filter.isApplied = true;
-        if (interactionType === "notInterested") filter.isInterested = true;
+        if (interactionType === "notInterested") filter.isInterested = false;
         if (interactionType === "Contacted") filter.isContacted = true;
 
         if (!jobId || !userId || !interactionType) {
@@ -461,33 +461,44 @@ export const getJobForUser = async (req: RequestType, res: Response, next: NextF
 
         const skip = (Number(page) - 1) * Number(limit);
 
-        const jobs = await Job.find(filter)
-            .skip(skip)
-            .limit(Number(limit))
-            .sort({ createdAt: -1 })
-            .select('jobTitle jobDescription jobLocation createdAt');
-
-        // Add interactions to jobs
         const userId = req.payload?.appUserId;
         if (!userId) {
             throw createError(401, 'User ID missing in request payload');
         }
+        const filterWithExclusion = {
+            ...filter,
+            createdBy: { $ne: new mongoose.Types.ObjectId(userId) },
+        };
 
-        const updatedJobs = await Promise.all(
-            jobs.map(async (job) => {
-                const interaction = await JobInteraction.findOne({
-                    jobId: job._id,
-                    userId: new mongoose.Types.ObjectId(userId),
-                }).select('_id isApplied isContacted isInterested');
+        const jobs = await Job.find(filterWithExclusion)
+            .skip(skip)
+            .limit(Number(limit))
+            .sort({ createdAt: -1 })
+            .populate({
+                path: 'jobCreatedBy',
+                select: 'name email mobile profile.image' // Only select needed fields
+            });
+        // .select('jobTitle jobDescription jobType jobCity minimumQualification jobLocation createdAt');
 
-                return {
-                    ...job.toObject(),
-                    interaction,
-                };
-            })
-        );
+        // Add interactions to jobs
+        const updatedJobs = (
+            await Promise.all(
+                jobs.map(async (job) => {
+                    const interaction = await JobInteraction.findOne({
+                        jobId: job._id,
+                        userId: new mongoose.Types.ObjectId(userId),
+                    }).select('_id isApplied isContacted isInterested');
 
-        const totalJobs = await Job.countDocuments(filter);
+                    return {
+                        ...job.toObject(),
+                        interaction,
+                    };
+                })
+            )
+        ).filter((job) => job.interaction?.isInterested !== false);
+
+        // const totalJobs = await Job.countDocuments(filterWithExclusion);
+        const totalJobs = updatedJobs.length;
 
         res.status(200).json({
             jobs: updatedJobs,

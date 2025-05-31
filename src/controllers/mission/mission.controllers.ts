@@ -7,6 +7,7 @@ import { missionSchema } from "@/helpers/joi/mission/mission.joi";
 import { IMissionData } from "@/helpers/interface/mission/mission.interface";
 import mongoose from "mongoose";
 import { RequestType } from "@/helpers/shared/shared.type";
+import Donation from "@/models/mission/donate.models";
 
 // 📌 Create a new mission with transaction
 export const createMission = async (req: RequestType, res: Response, next: NextFunction) => {
@@ -123,14 +124,11 @@ export const uploadMissionFiles = async (req: Request, res: Response, next: Next
 // 📌 Get all missions
 export const getAllMissions = async (_req: Request, res: Response, next: NextFunction) => {
     try {
-        // Extract query parameters with default values
         const { page = 1, limit = 10, title = '' } = _req.query;
 
-        // Convert page and limit to numbers
         const pageNumber = parseInt(page as string, 10);
         const limitNumber = parseInt(limit as string, 10);
 
-        // Validate page and limit values
         if (isNaN(pageNumber) || pageNumber < 1) {
             throw createError(400, "Invalid page number. Page number must be a positive integer.");
         }
@@ -138,35 +136,64 @@ export const getAllMissions = async (_req: Request, res: Response, next: NextFun
             throw createError(400, "Invalid limit. Limit must be a positive integer.");
         }
 
-        // Construct the search query
         const searchQuery = title ? { title: new RegExp(title as string, 'i') } : {};
 
-        // Retrieve missions with pagination and sorting
         const missions = await Mission.find(searchQuery)
             .sort({ createdAt: -1 })
             .skip((pageNumber - 1) * limitNumber)
-            .limit(limitNumber);
+            .limit(limitNumber)
+            .lean(); // use lean() so we get plain objects we can modify
 
-        // Get the total count of documents matching the search query
+        const missionIds = missions.map(m => m._id);
+
+        // Aggregate donation stats per mission
+        const donationStats = await Donation.aggregate([
+            { $match: { mission: { $in: missionIds } } },
+            {
+                $group: {
+                    _id: "$mission",
+                    totalAmount: { $sum: "$amount" },
+                    totalCount: { $sum: 1 }
+                }
+            }
+        ]);
+
+        // Map for quick lookup
+        const donationMap = donationStats.reduce((acc: any, curr: any) => {
+            acc[curr._id.toString()] = {
+                totalDonations: curr.totalCount,
+                totalAmount: curr.totalAmount
+            };
+            return acc;
+        }, {} as Record<string, { totalDonations: number, totalAmount: number }>);
+
+        // Attach donation data to each mission
+        const enrichedMissions = missions.map(m => {
+            const stats = donationMap[m._id.toString()] || { totalDonations: 0, totalAmount: 0 };
+            return {
+                ...m,
+                totalDonations: stats.totalDonations,
+                totalDonationAmount: stats.totalAmount
+            };
+        });
+
         const totalMissions = await Mission.countDocuments(searchQuery);
-
-        // Calculate total pages
         const totalPages = Math.ceil(totalMissions / limitNumber);
 
-        // Respond with missions and pagination info
         res.status(200).json({
-            missions,
+            missions: enrichedMissions,
             pagination: {
                 totalMissions,
                 totalPages,
                 currentPage: pageNumber,
-                pageSize: limitNumber,
-            },
+                pageSize: limitNumber
+            }
         });
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
+
 
 // 📌 Get user missions
 export const getUserMissions = async (_req: RequestType, res: Response, next: NextFunction) => {
@@ -256,11 +283,34 @@ export const getUserMissions = async (_req: RequestType, res: Response, next: Ne
 // 📌 Get a single mission by ID
 export const getMissionById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const mission = await Mission.findById(req.params.id);
+        const mission = await Mission.findById(req.params.id).lean(); // .lean() gives plain object
+
         if (!mission) {
             throw createError(404, "Mission not found");
         }
-        res.status(200).json(mission);
+
+        // Aggregate donation stats for the mission
+        const donationStats = await Donation.aggregate([
+            { $match: { mission: mission._id } },
+            {
+                $group: {
+                    _id: "$mission",
+                    totalAmount: { $sum: "$amount" },
+                    totalCount: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const { totalAmount = 0, totalCount = 0 } = donationStats[0] || {};
+
+        // Add donation stats to mission object
+        const enrichedMission = {
+            ...mission,
+            totalDonations: totalCount,
+            totalDonationAmount: totalAmount
+        };
+
+        res.status(200).json(enrichedMission);
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
