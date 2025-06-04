@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { createError } from "@/helpers/common/backend.functions";
 import BannerModel from "@/models/home/banner.models";
+import { ContactOption } from "@/models/home/contactoption.models";
 
 // 📌 Create a new banner
 export const createBanner = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -108,3 +109,52 @@ export const deleteBanner = async (req: Request, res: Response, next: NextFuncti
         next(createError(500, error?.message || "Internal server error"));
     }
 };
+
+// 📌 Update home data
+export const updateHomeData = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { content, image } = req.body;
+        console.log(content, image);
+
+        res.status(201).json({ message: "Home data created successfully" });
+    } catch (error: any) {
+        console.log("Error in create banner", error);
+        next(createError(500, error?.message || "Internal server error"));
+    }
+};
+
+// 📌 get contact option
+export const getContactOption = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const contact = await ContactOption.findOne();
+        res.json(contact || {});
+    } catch (error: any) {
+        console.log("Error in fetch contact options", error);
+        next(createError(500, error?.message || "Internal server error"));
+    }
+};
+
+// 📌 update contact option
+export const updateContactOption = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { whatsapp, email, telegram, phone } = req.body;
+
+        let contact = await ContactOption.findOne();
+
+        if (!contact) {
+            contact = new ContactOption({ whatsapp, email, telegram, phone });
+        } else {
+            contact.whatsapp = whatsapp;
+            contact.email = email;
+            contact.telegram = telegram;
+            contact.phone = phone;
+        }
+
+        await contact.save();
+        res.json({ success: true, error: false, data: contact });
+    } catch (error: any) {
+        console.log("Error in update contact option", error);
+        next(createError(500, error?.message || "Internal server error"));
+    }
+};
+

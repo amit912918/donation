@@ -465,19 +465,27 @@ export const getJobForUser = async (req: RequestType, res: Response, next: NextF
         if (!userId) {
             throw createError(401, 'User ID missing in request payload');
         }
+
+        // 1. Get reported job IDs
+        const reportedJobs = await JobReport.find().distinct('jobId');
+
+        // 2. Exclude jobs reported by anyone, and not created by current user
         const filterWithExclusion = {
             ...filter,
             createdBy: { $ne: new mongoose.Types.ObjectId(userId) },
+            _id: { $nin: reportedJobs } // exclude reported jobs
         };
 
+        // 3. Fetch jobs
         const jobs = await Job.find(filterWithExclusion)
             .skip(skip)
             .limit(Number(limit))
             .sort({ createdAt: -1 })
             .populate({
                 path: 'jobCreatedBy',
-                select: 'name email mobile profile.image' // Only select needed fields
+                select: 'name email mobile profile.image'
             });
+
         // .select('jobTitle jobDescription jobType jobCity minimumQualification jobLocation createdAt');
 
         // Add interactions to jobs
