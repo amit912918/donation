@@ -22,6 +22,13 @@ export interface ICandidate extends Document {
     photo?: string;
 }
 
+const JobSchema: Schema = new Schema({
+    businessType: { type: String },
+    businessSector: { type: String },
+    positionInBusiness: { type: String },
+    yearlyIncome: { type: String }
+}, { timestamps: true });
+
 const CandidateSchema: Schema = new Schema({
     name: { type: String, required: true },
     nickName: { type: String },
@@ -32,6 +39,7 @@ const CandidateSchema: Schema = new Schema({
     qualification: { type: String, required: true },
     college: { type: String, required: true },
     occupation: { type: String, required: true },
+    jobDetail: JobSchema,
     language: { type: String, default: "English" },
     serviceTypes: [{ type: String }],
     maritalStatus: { type: String, required: true },
@@ -59,7 +67,7 @@ export interface IBiodata extends Document {
     candidate: ICandidate[];
     state: string;
     city: string;
-    Bicholiya: mongoose.Types.ObjectId;
+    BicholiyaId: mongoose.Types.ObjectId;
     gotraDetails: {
         selfGotra: string;
         maaGotra: string;
@@ -101,7 +109,7 @@ const BiodataSchema: Schema = new Schema<IBiodata>({
     candidate: [CandidateSchema],
     state: { type: String, required: true },
     city: { type: String, required: true },
-    Bicholiya: { type: mongoose.Schema.Types.ObjectId, required: true },
+    BicholiyaId: { type: mongoose.Schema.Types.ObjectId, required: true },
     gotraDetails: {
         selfGotra: { type: String },
         maaGotra: { type: String },
