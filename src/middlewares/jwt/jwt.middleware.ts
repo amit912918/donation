@@ -64,6 +64,7 @@ export const verifyAccessToken = async (req: RequestType, res: Response, next: N
       next();
     });
   } catch (error) {
+    console.log("Error in verify access token", error);
     __sendJWTError(error, req, res);
   }
 };

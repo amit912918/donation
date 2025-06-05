@@ -196,10 +196,11 @@ export const getAllMissions = async (_req: Request, res: Response, next: NextFun
 
 
 // 📌 Get user missions
-export const getUserMissions = async (_req: RequestType, res: Response, next: NextFunction) => {
+export const getUserMissions = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
         // Extract query parameters with default values
-        const { page = 1, limit = 10, title = '' } = _req.query;
+        const { page = 1, limit = 10, title = '' } = req.query;
+        console.log(title, req?.payload?.appUserId, "tilte");
 
         // Convert page and limit to numbers
         const pageNumber = parseInt(page as string, 10);
@@ -214,7 +215,7 @@ export const getUserMissions = async (_req: RequestType, res: Response, next: Ne
         }
 
         // Construct the search query
-        const searchQuery = title ? { title: new RegExp(title as string, 'i'), missionCreatedBy: new mongoose.Types.ObjectId(_req?.payload?.appUserId) } : {};
+        const searchQuery = title ? { title: new RegExp(title as string, 'i'), missionCreatedBy: new mongoose.Types.ObjectId(req?.payload?.appUserId) } : {};
 
         // Retrieve missions with pagination and sorting
         // const missions = await Mission.find(searchQuery)

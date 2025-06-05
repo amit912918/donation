@@ -28,30 +28,31 @@ export const donateToMission = async (req: RequestType, res: Response, next: Nex
 };
 
 // 📌 Get top donon of the week
-export const getTopDonorOfTheWeek = async (req: Request, res: Response, next: NextFunction) => {
+export const getTopDonor = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Calculate the start of the current week (Sunday)
+        const { time } = req.body; // expects { "time": "weekly" } or { "time": "monthly" }
         const now = new Date();
-        const dayOfWeek = now.getDay(); // Sunday - 0, Monday - 1, ..., Saturday - 6
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - dayOfWeek);
-        startOfWeek.setHours(0, 0, 0, 0);
+        let startDate: Date;
+        let limit: number;
 
-        const donations = await Donation.find({
-            donatedAt: { $gte: startOfWeek, $lte: now }
-        });
-        const users = await User.find({
-            _id: { $in: [new mongoose.Types.ObjectId("681998c8be99d85e5faf7c4d"), new mongoose.Types.ObjectId("6818caba263f1e10901bb1bf")] }
-        }).lean();
-        console.log(users);
+        // Set time range and result limit
+        if (time === 'monthly') {
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            limit = 50;
+        } else {
+            // Default to weekly
+            const dayOfWeek = now.getDay(); // Sunday = 0
+            startDate = new Date(now);
+            startDate.setDate(now.getDate() - dayOfWeek);
+            startDate.setHours(0, 0, 0, 0);
+            limit = 10;
+        }
 
-        console.log(donations, "donations");
-
-        // Aggregate donations within the current week
-        const topDonor = await Donation.aggregate([
+        // Aggregate top donors
+        const topDonors = await Donation.aggregate([
             {
                 $match: {
-                    donatedAt: { $gte: startOfWeek, $lte: now }
+                    donatedAt: { $gte: startDate, $lte: now }
                 }
             },
             {
@@ -64,45 +65,48 @@ export const getTopDonorOfTheWeek = async (req: Request, res: Response, next: Ne
                 $sort: { totalDonated: -1 }
             },
             {
-                $limit: 10
+                $limit: limit
             }
         ]);
-        console.log(topDonor, "topDonar");
-        if (topDonor.length === 0) {
-            throw createError(404, "No donations found for the current week.");
+
+        if (topDonors.length === 0) {
+            throw createError(404, `No donations found for the selected ${time || 'weekly'} period.`);
         }
 
-        const data = [];
-        for (let i = 0; i < topDonor.length; i++) {
-            const userId = topDonor[i]._id;
-            const totalDonated = topDonor[i].totalDonated;
-            console.log(userId, "userId");
-            const userData = await User.findById(userId).select({
-                name: 1,
-                email: 1,
-                mobile: 1,
-                'profile.image': 1,
-                'profile.address': 1,
-                'profile.city': 1,
-                'profile.gender': 1,
-                'profile.dob': 1
-            });
-            data.push({
-                totalDonated,
-                userData
+        // Get donor details
+        const data = await Promise.all(
+            topDonors.map(async (donor) => {
+                const userData = await User.findById(donor._id).select({
+                    name: 1,
+                    email: 1,
+                    mobile: 1,
+                    'profile.image': 1,
+                    'profile.address': 1,
+                    'profile.city': 1,
+                    'profile.gender': 1,
+                    'profile.dob': 1
+                });
+
+                return {
+                    totalDonated: donor.totalDonated,
+                    userData
+                };
             })
-        }
+        );
 
         res.status(200).json({
             success: true,
             error: false,
-            message: "Weekly brahmas fetch successfully",
+            message: `Top ${limit} ${time || 'weekly'} donors fetched successfully.`,
             data
         });
+
     } catch (error: any) {
+        console.log("Error in get top donor", error);
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
+
 
 // 📌 Get all donate by Id
 export const getDonateById = async (req: Request, res: Response, next: NextFunction) => {

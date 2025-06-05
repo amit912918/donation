@@ -1,4 +1,6 @@
+import { createError } from "@/helpers/common/backend.functions";
 import { RequestType } from "@/helpers/shared/shared.type";
+import User from "@/models/auth/auth.models";
 import Biodata from "@/models/matrimony/biodata.models";
 import { Request, Response, NextFunction } from "express";
 
@@ -113,5 +115,31 @@ export const deleteBiodata = async (req: Request, res: Response, next: NextFunct
         res.status(200).json({ success: true, message: "Biodata deleted successfully" });
     } catch (error) {
         next(error);
+    }
+};
+
+export const getBicholiyaList = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const search = (req.query.search as string) || "";
+
+        const searchQuery = {
+            isBicholiya: true,
+            ...(search && {
+                name: { $regex: search, $options: "i" }
+            })
+        };
+
+        const bicholiyaDatas = await User.find(searchQuery).sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            error: false,
+            count: bicholiyaDatas.length,
+            data: bicholiyaDatas
+        });
+    } catch (error: unknown) {
+        console.error("Error in get bicholiya list", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
     }
 };
