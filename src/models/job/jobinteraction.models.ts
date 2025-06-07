@@ -21,7 +21,7 @@ const JobInteractionSchema: Schema = new Schema(
         },
         isInterested: {
             type: Boolean,
-            default: false
+            default: true
         },
         isContacted: {
             type: Boolean,
