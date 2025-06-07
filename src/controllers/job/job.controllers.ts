@@ -394,7 +394,7 @@ export const createOrUpdateJobInteraction = async (req: RequestType, res: Respon
             jobId,
             userId,
             isApplied: interactionType === "Applied" ? true : false,
-            isInterested: interactionType === "Interested" ? true : false,
+            isInterested: interactionType === "notInterested" ? false : true,
             isContacted: interactionType === "Contacted" ? true : false,
             message
         });
