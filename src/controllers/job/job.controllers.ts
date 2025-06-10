@@ -522,6 +522,71 @@ export const getJobForUser = async (req: RequestType, res: Response, next: NextF
     }
 };
 
+// 📌 get applied job by user
+export const getAppliedJobByUser = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const userId = req.payload?.appUserId;
+    if (!userId) {
+      throw createError(401, 'User ID missing in request payload');
+    }
+
+    // 1. Find all job interactions where user applied
+    const appliedInteractions = await JobInteraction.find({
+      userId: new mongoose.Types.ObjectId(userId),
+      isApplied: true,
+    }).select('jobId');
+
+    const appliedJobIds = appliedInteractions.map((interaction) => interaction.jobId);
+
+    // 2. Get reported jobs to exclude
+    const reportedJobs = await JobReport.find().distinct('jobId');
+
+    // 3. Fetch jobs that user applied to
+    const jobs = await Job.find({
+      _id: { $in: appliedJobIds, $nin: reportedJobs },
+    })
+      .skip(skip)
+      .limit(Number(limit))
+      .sort({ createdAt: -1 })
+      .populate({
+        path: 'jobCreatedBy',
+        select: 'name email mobile profile.image',
+      });
+
+    // 4. Add interaction info to each job
+    const updatedJobs = await Promise.all(
+      jobs.map(async (job: any) => {
+        const interaction = appliedInteractions.find((i) =>
+          i.jobId.toString() === job._id.toString()
+        );
+
+        return {
+          ...job.toObject(),
+          interaction,
+        };
+      })
+    );
+
+    const totalJobs = appliedJobIds.length;
+
+    res.status(200).json({
+      jobs: updatedJobs,
+      pagination: {
+        totalJobs,
+        totalPages: Math.ceil(totalJobs / Number(limit)),
+        currentPage: Number(page),
+        pageSize: Number(limit),
+      },
+    });
+  } catch (error: any) {
+    next(createError(error.status || 500, error.message || 'Internal Server Error'));
+  }
+};
+
 // 📌 Report on job
 export const jobReport = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
