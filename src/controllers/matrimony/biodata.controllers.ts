@@ -145,13 +145,13 @@ export const getBicholiyaList = async (req: Request, res: Response, next: NextFu
     }
 };
 
-export const getNewlyJoined = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getNewlyJoined = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
         
-        const newlyJoinedData = await Biodata.find()
+        const newlyJoinedData = await Biodata.find({ profileCreatedById: { $ne: req?.payload?.appUserId } })
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 });
@@ -178,9 +178,8 @@ export const recommendationBiodata = async (req: RequestType, res: Response, nex
         const skip = (page - 1) * limit;
         
         const userBioData = await Biodata.findOne({profileCreatedById: appUserId}).select('gotraDetails');
-        console.log(userBioData, "userBioData");
 
-        const recommendationData = await Biodata.find({gotraDetails: userBioData?.gotraDetails})
+        const recommendationData = await Biodata.find({ profileCreatedById: { $ne: req?.payload?.appUserId }, gotraDetails: userBioData?.gotraDetails})
         .skip(skip)
         .limit(limit);
 
