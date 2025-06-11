@@ -180,7 +180,9 @@ export const recommendationBiodata = async (req: RequestType, res: Response, nex
         const userBioData = await Biodata.findOne({profileCreatedById: appUserId}).select('gotraDetails');
         console.log(userBioData, "userBioData");
 
-        const recommendationData = await Biodata.find({gotraDetails: userBioData?.gotraDetails});
+        const recommendationData = await Biodata.find({gotraDetails: userBioData?.gotraDetails})
+        .skip(skip)
+        .limit(limit);
 
         res.status(200).json({
             success: true,
