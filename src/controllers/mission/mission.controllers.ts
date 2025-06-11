@@ -122,9 +122,9 @@ export const uploadMissionFiles = async (req: Request, res: Response, next: Next
 };
 
 // 📌 Get all missions
-export const getAllMissions = async (_req: Request, res: Response, next: NextFunction) => {
+export const getAllMissions = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
-        const { page = 1, limit = 10, title = '' } = _req.query;
+        const { page = 1, limit = 10, title = '' } = req.query;
 
         const pageNumber = parseInt(page as string, 10);
         const limitNumber = parseInt(limit as string, 10);
@@ -136,7 +136,7 @@ export const getAllMissions = async (_req: Request, res: Response, next: NextFun
             throw createError(400, "Invalid limit. Limit must be a positive integer.");
         }
 
-        const searchQuery = title ? { title: new RegExp(title as string, 'i') } : {};
+        const searchQuery = title ? { title: new RegExp(title as string, 'i'), missionCreatedBy: { $ne: req?.payload?.appUserId } } : { missionCreatedBy: { $ne: req?.payload?.appUserId } };
 
         const missions = await Mission.find(searchQuery)
             .sort({ createdAt: -1 })
@@ -317,9 +317,9 @@ export const getMissionById = async (req: Request, res: Response, next: NextFunc
 };
 
 // 📌 Get latest mission
-export const getLatestMission = async (req: Request, res: Response, next: NextFunction) => {
+export const getLatestMission = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
-        const mission = await Mission.find().sort({ createdAt: -1 }).limit(5);;
+        const mission = await Mission.find({ missionCreatedBy: { $ne: req?.payload?.appUserId } }).sort({ createdAt: -1 }).limit(5);;
         if (!mission) {
             throw createError(404, "Mission not found");
         }

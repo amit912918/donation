@@ -472,7 +472,7 @@ export const getJobForUser = async (req: RequestType, res: Response, next: NextF
         // 2. Exclude jobs reported by anyone, and not created by current user
         const filterWithExclusion = {
             ...filter,
-            createdBy: { $ne: new mongoose.Types.ObjectId(userId) },
+            jobCreatedBy: { $ne: new mongoose.Types.ObjectId(userId) },
             _id: { $nin: reportedJobs } // exclude reported jobs
         };
 
