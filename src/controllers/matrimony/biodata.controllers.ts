@@ -196,6 +196,81 @@ export const recommendationBiodata = async (req: RequestType, res: Response, nex
     }
 };
 
+export const getSendRequest = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+
+        const appUserId = req?.payload?.appUserId;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const skip = (page - 1) * limit;
+        
+        const requestGetData = await BiodataInteraction.find({ requestSendById: appUserId, isRequestSend: true })
+        .skip(skip)
+        .limit(limit);
+
+        res.status(200).json({
+            success: true,
+            error: false,
+            count: requestGetData.length,
+            data: requestGetData
+        });
+    } catch (error: unknown) {
+        console.error("Error in send request", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
+    }
+};
+
+export const getReceiveRequest = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+
+        const appUserId = req?.payload?.appUserId;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const skip = (page - 1) * limit;
+        
+        const requestGetData = await BiodataInteraction.find({ biodataCreatedBy: appUserId, isRequestSend: true })
+        .skip(skip)
+        .limit(limit);
+
+        res.status(200).json({
+            success: true,
+            error: false,
+            count: requestGetData.length,
+            data: requestGetData
+        });
+    } catch (error: unknown) {
+        console.error("Error in receive request", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
+    }
+};
+
+export const getFavouristList = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+
+        const appUserId = req?.payload?.appUserId;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const skip = (page - 1) * limit;
+        
+        const requestGetData = await BiodataInteraction.find({ requestSendById: appUserId, addingToFavourite: true })
+        .skip(skip)
+        .limit(limit);
+
+        res.status(200).json({
+            success: true,
+            error: false,
+            count: requestGetData.length,
+            data: requestGetData
+        });
+    } catch (error: unknown) {
+        console.error("Error in get favourite list", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
+    }
+};
+
 export const biodataInteraction = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const userId = req?.payload?.appUserId;
@@ -245,7 +320,7 @@ export const biodataInteraction = async (req: RequestType, res: Response, next: 
 
         res.status(201).json({ message: "Interaction recorded successfully", interaction: newInteraction });
     } catch (error: unknown) {
-        console.error("Error in biodataInteraction:", error);
+        console.error("Error in biodata Interaction:", error);
         const err = error instanceof Error ? error.message : "Internal server error";
         next(createError(500, err));
     }
@@ -287,7 +362,7 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
 
         if (existingInteraction) {
             const updated = await BiodataInteraction.findOneAndUpdate(
-                { biodataId, userId },
+                { biodataId, requestSendById: userId },
                 { $set: updateData },
                 { new: true }
             );
@@ -297,7 +372,7 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
 
         const newInteraction = new BiodataInteraction({
             biodataId,
-            userId,
+            biodataCreatedBy: biodata?.profileCreatedById,
             requestSendById: userId,
             isRequestSend: type === "send",
             isAccpted: type === "accept",
@@ -309,7 +384,7 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
 
         res.status(201).json({ message: "Interaction recorded successfully", interaction: newInteraction });
     } catch (error: unknown) {
-        console.error("Error in biodataSendAccept:", error);
+        console.error("Error in biodata send accept:", error);
         const err = error instanceof Error ? error.message : "Internal server error";
         next(createError(500, err));
     }
