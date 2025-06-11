@@ -16,7 +16,7 @@ export interface IBiodataInteraction extends Document {
 const BiodataInteractionSchema: Schema = new Schema(
     {
         biodataId: { type: mongoose.Schema.Types.ObjectId, ref: "Biodata", required: true },
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+        biodataCreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         requestSendById: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         isCheckout: {
             type: Boolean,
