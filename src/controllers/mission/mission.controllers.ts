@@ -200,7 +200,6 @@ export const getUserMissions = async (req: RequestType, res: Response, next: Nex
     try {
         // Extract query parameters with default values
         const { page = 1, limit = 10, title = '' } = req.query;
-        console.log(title, req?.payload?.appUserId, "tilte");
 
         // Convert page and limit to numbers
         const pageNumber = parseInt(page as string, 10);
@@ -326,6 +325,20 @@ export const getLatestMission = async (req: Request, res: Response, next: NextFu
         }
         res.status(200).json(mission);
     } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 Get mission created by user
+export const getMissionCreatedByUser = async (req: RequestType, res: Response, next: NextFunction) => {
+    try {
+        const mission = await Mission.find({ missionCreatedBy: req?.payload?.appUserId}).sort({ createdAt: -1 });
+        if (!mission) {
+            throw createError(404, "Mission not found");
+        }
+        res.status(200).json(mission);
+    } catch (error: any) {
+        console.log("Error in mission created by user", error);
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
