@@ -1,4 +1,4 @@
-import { createMission, deleteMission, getAllMissions, getLatestMission, getMissionById, getUserMissions, updateMission, uploadMissionFiles, uploadMissionImages, uploadMissionVideo } from "@/controllers/mission/mission.controllers";
+import { createMission, deleteMission, getAllMissions, getLatestMission, getMissionById, getMissionCreatedByUser, getUserMissions, updateMission, uploadMissionFiles, uploadMissionImages, uploadMissionVideo } from "@/controllers/mission/mission.controllers";
 import { Router } from "express";
 import uploadVideo from "@/middlewares/files/mission/video.file.middlewares";
 import { verifyAccessToken } from "@/middlewares/jwt/jwt.middleware";
@@ -17,5 +17,6 @@ appMissionRouterV1.get('/get-mission-by-id/:id', verifyAccessToken, getMissionBy
 appMissionRouterV1.put('/update-mission/:id', verifyAccessToken, updateMission);
 appMissionRouterV1.delete('/delete-mission/:id', verifyAccessToken, deleteMission);
 appMissionRouterV1.get('/get-latest-mission', verifyAccessToken, getLatestMission);
+appMissionRouterV1.get('/get-mission-created-by-user', verifyAccessToken, getMissionCreatedByUser);
 
 export default appMissionRouterV1;
