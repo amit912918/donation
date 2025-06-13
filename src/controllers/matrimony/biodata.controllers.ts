@@ -271,6 +271,83 @@ export const getFavouristList = async (req: RequestType, res: Response, next: Ne
     }
 };
 
+export const getBiodataInteraction = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const biodataId = req.params.id;
+        let interactionTypes: any = req?.query?.interactionTypes;
+
+        if (!biodataId) {
+            throw createError(400, "Biodata ID is required");
+        }
+
+        const filter: any = { _id: biodataId };
+
+        if (interactionTypes && interactionTypes?.length > 0) {
+            filter.interactionType = { $in: JSON.parse(interactionTypes) };
+        }
+
+        const interactions = await BiodataInteraction.find(filter).populate("biodataCreatedBy", "name email");
+        res.status(200).json({
+            error: false,
+            success: true,
+            count: interactions.length || 0,
+            data: interactions
+        });
+    } catch (error: unknown) {
+        console.error("Error in get favourite list", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
+    }
+};
+
+export const getBiodataInteractionByUser = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        let interactionTypes: any = req?.query?.interactionTypes;
+
+        const filter: any = { biodataCreatedBy: req?.payload?.appUserId };
+
+        if (interactionTypes && interactionTypes?.length > 0) {
+            filter.interactionType = { $in: JSON.parse(interactionTypes) };
+        }
+
+        const interactions = await BiodataInteraction.find(filter).populate("biodataCreatedBy", "name email");
+        res.status(200).json({
+            error: false,
+            success: true,
+            count: interactions.length || 0,
+            data: interactions
+        });
+    } catch (error: unknown) {
+        console.error("Error in get favourite list", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
+    }
+};
+
+export const getAllBiodataInteraction = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        let interactionTypes: any = req?.query?.interactionTypes;
+
+        const filter: any = { };
+
+        if (interactionTypes && interactionTypes?.length > 0) {
+            filter.interactionType = { $in: JSON.parse(interactionTypes) };
+        }
+
+        const interactions = await BiodataInteraction.find(filter).populate("biodataCreatedBy", "name email");
+        res.status(200).json({
+            error: false,
+            success: true,
+            count: interactions.length || 0,
+            data: interactions
+        });
+    } catch (error: unknown) {
+        console.error("Error in get favourite list", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
+    }
+};
+
 export const biodataInteraction = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const userId = req?.payload?.appUserId;
@@ -309,7 +386,7 @@ export const biodataInteraction = async (req: RequestType, res: Response, next: 
 
         const newInteraction = new BiodataInteraction({
             biodataId,
-            userId,
+            biodataCreatedBy: biodata?.profileCreatedById,
             requestSendById: userId,
             isCheckout: interactionType === "checkout",
             addingToFavourite: interactionType === "addToFavourite",
