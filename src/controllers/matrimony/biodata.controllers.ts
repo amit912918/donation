@@ -4,6 +4,7 @@ import User from "@/models/auth/auth.models";
 import BiodataInteraction from "@/models/matrimony/biodata.interaction.models";
 import Biodata from "@/models/matrimony/biodata.models";
 import { Request, Response, NextFunction } from "express";
+import mongoose from "mongoose";
 
 export const createBiodata = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
@@ -204,7 +205,8 @@ export const getSendRequest = async (req: RequestType, res: Response, next: Next
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
         
-        const requestGetData = await BiodataInteraction.find({ requestSendById: appUserId, isRequestSend: true })
+        const requestGetData = await BiodataInteraction.find({ userId: appUserId, isRequestSend: true })
+        .populate("biodataId", "candidate createdAt")
         .skip(skip)
         .limit(limit);
 
@@ -230,6 +232,7 @@ export const getReceiveRequest = async (req: RequestType, res: Response, next: N
         const skip = (page - 1) * limit;
         
         const requestGetData = await BiodataInteraction.find({ biodataCreatedBy: appUserId, isRequestSend: true })
+        .populate("biodataId", "candidate createdAt")
         .skip(skip)
         .limit(limit);
 
@@ -254,7 +257,7 @@ export const getFavouristList = async (req: RequestType, res: Response, next: Ne
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
         
-        const requestGetData = await BiodataInteraction.find({ requestSendById: appUserId, addingToFavourite: true })
+        const requestGetData = await BiodataInteraction.find({ userId: appUserId, addingToFavourite: true })
         .skip(skip)
         .limit(limit);
 
@@ -368,8 +371,15 @@ export const biodataInteraction = async (req: RequestType, res: Response, next: 
         if (!user) throw createError(404, "User not found");
 
         const updateData: any = {};
-        if (interactionType === "checkout") updateData.isCheckout = true;
-        if (interactionType === "addToFavourite") updateData.addingToFavourite = true;
+        if (interactionType === "checkout") 
+        {
+            updateData.isCheckout = true;
+            updateData.isCheckoutTime = new Date();
+        }
+        if (interactionType === "addToFavourite") {
+            updateData.addingToFavourite = true;
+            updateData.addingToFavouriteTime = new Date();
+        }
         updateData.message = message || "";
 
         const existingInteraction = await BiodataInteraction.findOne({ biodataId, userId });
@@ -387,9 +397,11 @@ export const biodataInteraction = async (req: RequestType, res: Response, next: 
         const newInteraction = new BiodataInteraction({
             biodataId,
             biodataCreatedBy: biodata?.profileCreatedById,
-            requestSendById: userId,
+            userId,
             isCheckout: interactionType === "checkout",
+            isCheckoutTime: interactionType === "checkout" ? new Date() : "",
             addingToFavourite: interactionType === "addToFavourite",
+            addingToFavouriteTime: interactionType === "addToFavourite" ? new Date() : "",
             message: message || "",
         });
 
@@ -423,14 +435,20 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
         if (!user) throw createError(404, "User not found");
 
         const updateData: any = {};
-        if (type === "send") updateData.isRequestSend = true;
+        if (type === "send") 
+            {
+                updateData.isRequestSend = true;
+                updateData.requestSendTime = new Date();
+            }
         if (type === "accept") {
             updateData.isAccpted = true;
             updateData.isRejected = false;
+            updateData.requestAcceptTime = new Date();
         }
         if (type === "reject") {
             updateData.isRejected = true;
             updateData.isAccpted = false;
+            updateData.requestRejectTime = new Date();
         }
 
         updateData.message = message || "";
@@ -439,7 +457,7 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
 
         if (existingInteraction) {
             const updated = await BiodataInteraction.findOneAndUpdate(
-                { biodataId, requestSendById: userId },
+                { biodataId, userId },
                 { $set: updateData },
                 { new: true }
             );
@@ -450,10 +468,13 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
         const newInteraction = new BiodataInteraction({
             biodataId,
             biodataCreatedBy: biodata?.profileCreatedById,
-            requestSendById: userId,
+            userId,
             isRequestSend: type === "send",
             isAccpted: type === "accept",
             isRejected: type === "reject",
+            requestSendTime: type === "send" ? new Date() : "",
+            requestAcceptTime: type === "accept" ? new Date() : "",
+            requestRejectTime: type === "reject" ? new Date() : "",
             message: message || "",
         });
 
