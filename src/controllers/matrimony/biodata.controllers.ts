@@ -160,11 +160,53 @@ export const getNewlyJoined = async (req: RequestType, res: Response, next: Next
         res.status(200).json({
             success: true,
             error: false,
-            count: newlyJoinedData.length,
+            count: newlyJoinedData?.length,
             data: newlyJoinedData
         });
     } catch (error: unknown) {
         console.error("Error in get newly joined user", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
+    }
+};
+
+export const getAllBioDataMatch = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+
+        const appUserId = req?.payload?.appUserId;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const skip = (page - 1) * limit;
+        
+        const userBioData = await Biodata.findOne({profileCreatedById: appUserId}).select('gotraDetails');
+
+        // const recommendationData = await Biodata.find({ profileCreatedById: { $ne: req?.payload?.appUserId }, gotraDetails: userBioData?.gotraDetails})
+        // .skip(skip)
+        // .limit(limit);
+        const allTopMatchData = await Biodata.aggregate([
+            {
+                $match: { profileCreatedById: { $ne: req?.payload?.appUserId }, gotraDetails: userBioData?.gotraDetails}
+            },
+            {
+                $lookup: {
+                    from: 'biodatainteractions',
+                    localField: '_id',
+                    foreignField: 'biodataId',
+                    as: 'interactionDetails'
+                }
+            },
+        ])
+        .skip(skip)
+        .limit(limit);
+
+        res.status(200).json({
+            success: true,
+            error: false,
+            count: allTopMatchData.length,
+            data: allTopMatchData
+        });
+    } catch (error: unknown) {
+        console.error("Error in get all bio data match", error);
         const err = error instanceof Error ? error.message : "Internal server error";
         next(createError(500, err));
     }
