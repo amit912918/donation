@@ -35,12 +35,10 @@ export const getTopDonor = async (req: Request, res: Response, next: NextFunctio
         let startDate: Date;
         let limit: number;
 
-        // Set time range and result limit
         if (time === 'monthly') {
             startDate = new Date(now.getFullYear(), now.getMonth(), 1);
             limit = 50;
         } else {
-            // Default to weekly
             const dayOfWeek = now.getDay(); // Sunday = 0
             startDate = new Date(now);
             startDate.setDate(now.getDate() - dayOfWeek);
@@ -48,7 +46,6 @@ export const getTopDonor = async (req: Request, res: Response, next: NextFunctio
             limit = 10;
         }
 
-        // Aggregate top donors
         const topDonors = await Donation.aggregate([
             {
                 $match: {

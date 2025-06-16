@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyAccessToken } from "@/middlewares/jwt/jwt.middleware";
-import { biodataCancelFavourite_Remove, biodataInteraction, biodataSendAccept, createBiodata, deleteBiodata, getAllBiodataInteraction, getAllBiodatas, getBicholiyaList, getBiodataById, getBiodataByUserId, getBiodataInteraction, getBiodataInteractionByUser, getFavouristList, getNewlyJoined, getReceiveRequest, getSendRequest, recommendationBiodata, updateBiodata } from "@/controllers/matrimony/biodata.controllers";
+import { biodataCancelFavourite_Remove, biodataInteraction, biodataSendAccept, createBiodata, deleteBiodata, getAllBiodataInteraction, getAllBioDataMatch, getAllBiodatas, getBicholiyaList, getBiodataById, getBiodataByUserId, getBiodataInteraction, getBiodataInteractionByUser, getFavouristList, getNewlyJoined, getReceiveRequest, getSendRequest, recommendationBiodata, updateBiodata } from "@/controllers/matrimony/biodata.controllers";
 
 const appMatrimonyRouterV1 = Router();
 
@@ -8,6 +8,7 @@ const appMatrimonyRouterV1 = Router();
 appMatrimonyRouterV1.post("/", verifyAccessToken, createBiodata);
 appMatrimonyRouterV1.get("/", verifyAccessToken, getAllBiodatas);
 appMatrimonyRouterV1.get("/recommendation-bidata", verifyAccessToken, recommendationBiodata);
+appMatrimonyRouterV1.get("/get-all-biodata-match", verifyAccessToken, getAllBioDataMatch);
 appMatrimonyRouterV1.get("/get-bicholiya-list", verifyAccessToken, getBicholiyaList);
 appMatrimonyRouterV1.get("/get-newly-joined", verifyAccessToken, getNewlyJoined);
 
