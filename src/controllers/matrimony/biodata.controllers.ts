@@ -170,7 +170,7 @@ export const getNewlyJoined = async (req: RequestType, res: Response, next: Next
     }
 };
 
-export const getAllBioDataMatch = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+export const recommendationBiodata = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
 
         const appUserId = req?.payload?.appUserId;
@@ -212,7 +212,7 @@ export const getAllBioDataMatch = async (req: RequestType, res: Response, next: 
     }
 };
 
-export const recommendationBiodata = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+export const getAllBioDataMatch = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
 
         const appUserId = req?.payload?.appUserId;
