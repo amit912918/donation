@@ -173,3 +173,95 @@ export const getMissionDonation = async (req: Request, res: Response, next: Next
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
+
+// 📌 Get all donors
+export const getAllDonors = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const donation = await Donation.aggregate([
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'userDetails'
+                }
+            },
+            { $unwind: '$userDetails' },
+            {
+                $lookup: {
+                    from: 'missions',
+                    localField: 'mission',
+                    foreignField: '_id',
+                    as: 'missionDetails'
+                }
+            },
+            { $unwind: '$missionDetails' },
+            {
+                $project: {
+                    profile: '$userDetails.profile',
+                    amount: 1,
+                    name: '$userDetails.name',
+                    mission: '$missionDetails'
+                }
+            }
+        ]);
+        if (donation.length === 0) {
+            return next(createError(404, "Donation not found"));
+        }
+        res.status(200).json({
+            error: false,
+            success: true,
+            count: donation.length,
+            data: donation
+        });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 Get donation by user
+export const getDonationByUser = async (req: RequestType, res: Response, next: NextFunction) => {
+    try {
+        const appUserId = req?.payload?.appUserId;
+        const donation = await Donation.aggregate([
+            { $match: { user: new mongoose.Types.ObjectId(appUserId) } },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'userDetails'
+                }
+            },
+            { $unwind: '$userDetails' },
+            {
+                $lookup: {
+                    from: 'missions',
+                    localField: 'mission',
+                    foreignField: '_id',
+                    as: 'missionDetails'
+                }
+            },
+            { $unwind: '$missionDetails' },
+            {
+                $project: {
+                    profile: '$userDetails.profile',
+                    amount: 1,
+                    name: '$userDetails.name',
+                    mission: '$missionDetails'
+                }
+            }
+        ]);
+        if (donation.length === 0) {
+            return next(createError(404, "Donation not found"));
+        }
+        res.status(200).json({
+            error: false,
+            success: true,
+            count: donation.length,
+            data: donation
+        });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
