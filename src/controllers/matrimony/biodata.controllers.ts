@@ -205,7 +205,7 @@ export const getSendRequest = async (req: RequestType, res: Response, next: Next
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
         
-        const requestGetData = await BiodataInteraction.find({ userId: appUserId, isRequestSend: true })
+        const requestGetData = await BiodataInteraction.find({ userId: appUserId, isRequestSend: true, isAccpted: false })
         .populate("biodataId", "candidate createdAt")
         .skip(skip)
         .limit(limit);
@@ -231,7 +231,7 @@ export const getReceiveRequest = async (req: RequestType, res: Response, next: N
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
         
-        const requestGetData = await BiodataInteraction.find({ biodataCreatedBy: appUserId, isRequestSend: true })
+        const requestGetData = await BiodataInteraction.find({ biodataCreatedBy: appUserId, isRequestSend: true, isAccpted: false })
         .populate("biodataId", "candidate createdAt")
         .skip(skip)
         .limit(limit);
@@ -484,6 +484,57 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
         res.status(201).json({ message: "Interaction recorded successfully", interaction: newInteraction });
     } catch (error: unknown) {
         console.error("Error in biodata send accept:", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
+    }
+};
+
+export const biodataCancelFavourite_Remove = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req?.payload?.appUserId;
+        const { biodataId, type, message } = req.body;
+
+        if (!biodataId || !userId || !type) {
+            throw createError(400, "Missing required fields");
+        }
+
+        if (!["cancel", "remove_from_favourite"].includes(type)) {
+            throw createError(400, "Invalid interaction type");
+        }
+
+        const biodata = await Biodata.findById(biodataId);
+        if (!biodata) throw createError(404, "Biodata not found");
+
+        const user = await User.findById(userId);
+        if (!user) throw createError(404, "User not found");
+
+        const updateData: any = {};
+        if (type === "cancel") {
+            updateData.isRequestSend = false;
+            updateData.requestSendTime = "";
+        }
+        if (type === "remove_from_favourite") {
+                updateData.addingToFavourite = false;
+                updateData.addingToFavouriteTime = "";
+        }
+
+        updateData.message = message || "";
+
+        const existingInteraction = await BiodataInteraction.findOne({ biodataId, userId });
+
+        if (!existingInteraction) {
+              throw createError(404, "Interaction not exist");
+        }
+
+        const updated = await BiodataInteraction.findOneAndUpdate(
+                { biodataId, userId },
+                { $set: updateData },
+                { new: true }
+        );
+
+        res.status(200).json({ message: "Interaction updated successfully", interaction: updated });
+    } catch (error: unknown) {
+        console.error("Error in biodata cancel remove and remove_from_favourite:", error);
         const err = error instanceof Error ? error.message : "Internal server error";
         next(createError(500, err));
     }
