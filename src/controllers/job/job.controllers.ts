@@ -538,7 +538,7 @@ export const getAppliedJobByUser = async (req: RequestType, res: Response, next:
     const appliedInteractions = await JobInteraction.find({
       userId: new mongoose.Types.ObjectId(userId),
       isApplied: true,
-    }).select('jobId');
+    }).select('jobId isApplied isInterested isContacted');
 
     const appliedJobIds = appliedInteractions.map((interaction) => interaction.jobId);
 
@@ -563,6 +563,7 @@ export const getAppliedJobByUser = async (req: RequestType, res: Response, next:
         const interaction = appliedInteractions.find((i) =>
           i.jobId.toString() === job._id.toString()
         );
+        console.log(interaction, "interaction");
 
         return {
           ...job.toObject(),

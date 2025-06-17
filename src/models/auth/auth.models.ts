@@ -13,6 +13,7 @@ export interface IUser extends Document {
     resetPasswordExpire?: Date;
     confirmed: boolean;
     isBicholiya: boolean;
+    isMentor: boolean;
     agreeTermConditions: boolean;
     profile: IProfile,
     blocked: boolean;
@@ -32,6 +33,7 @@ const userSchema = new Schema<IUser>(
         resetPasswordExpire: { type: Date },
         confirmed: { type: Boolean, default: true },
         isBicholiya: { type: Boolean, default: false },
+        isMentor: { type: Boolean, default: false },
         agreeTermConditions: { type: Boolean, default: true },
         profile: profileSchema,
         blocked: { type: Boolean, default: false },
