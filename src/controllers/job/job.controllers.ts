@@ -361,17 +361,26 @@ export const createOrUpdateJobInteraction = async (req: RequestType, res: Respon
             throw createError(400, "Interaction type is not valid");
         }
 
-        let filter: any = {};
-        if (interactionType === "Applied") filter.isApplied = true;
-        if (interactionType === "notInterested") filter.isInterested = false;
-        if (interactionType === "Contacted") filter.isContacted = true;
-
         if (!jobId || !userId || !interactionType) {
             throw createError(400, "Missing required fields");
         }
 
         const job = await Job.findById(jobId);
         if (!job) throw createError(400, "Job not found");
+
+        let filter: any = {};
+        if (interactionType === "Applied") {
+            filter.isApplied = true;
+            filter.appliedTime = new Date();
+        }
+        if (interactionType === "notInterested") {
+            filter.isInterested = false;
+            filter.interestedTime = new Date();
+        }
+        if (interactionType === "Contacted") {
+            filter.isContacted = true;
+            filter.contactedTime = new Date();
+        }
 
         const user = await User.findById(userId);
         if (!user) throw createError(400, "User not found");
@@ -394,8 +403,11 @@ export const createOrUpdateJobInteraction = async (req: RequestType, res: Respon
             jobId,
             userId,
             isApplied: interactionType === "Applied" ? true : false,
+            appliedTime: interactionType === "Applied" ? new Date() : "",
             isInterested: interactionType === "notInterested" ? false : true,
+            interestedTime: interactionType === "notInterested" ? new Date() : "",
             isContacted: interactionType === "Contacted" ? true : false,
+            contactedTime: interactionType === "Contacted" ? new Date() : "",
             message
         });
         await newInteraction.save();
@@ -524,68 +536,68 @@ export const getJobForUser = async (req: RequestType, res: Response, next: NextF
 
 // 📌 get applied job by user
 export const getAppliedJobByUser = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const { page = 1, limit = 10 } = req.query;
+    try {
+        const { page = 1, limit = 10 } = req.query;
 
-    const skip = (Number(page) - 1) * Number(limit);
+        const skip = (Number(page) - 1) * Number(limit);
 
-    const userId = req.payload?.appUserId;
-    if (!userId) {
-      throw createError(401, 'User ID missing in request payload');
-    }
+        const userId = req.payload?.appUserId;
+        if (!userId) {
+            throw createError(401, 'User ID missing in request payload');
+        }
 
-    // 1. Find all job interactions where user applied
-    const appliedInteractions = await JobInteraction.find({
-      userId: new mongoose.Types.ObjectId(userId),
-      isApplied: true,
-    }).select('jobId isApplied isInterested isContacted');
+        // 1. Find all job interactions where user applied
+        const appliedInteractions = await JobInteraction.find({
+            userId: new mongoose.Types.ObjectId(userId),
+            isApplied: true,
+        }).select('jobId isApplied isInterested isContacted appliedTime isInterested contactedTime');
 
-    const appliedJobIds = appliedInteractions.map((interaction) => interaction.jobId);
+        const appliedJobIds = appliedInteractions.map((interaction) => interaction.jobId);
 
-    // 2. Get reported jobs to exclude
-    const reportedJobs = await JobReport.find().distinct('jobId');
+        // 2. Get reported jobs to exclude
+        const reportedJobs = await JobReport.find().distinct('jobId');
 
-    // 3. Fetch jobs that user applied to
-    const jobs = await Job.find({
-      _id: { $in: appliedJobIds, $nin: reportedJobs },
-    })
-      .skip(skip)
-      .limit(Number(limit))
-      .sort({ createdAt: -1 })
-      .populate({
-        path: 'jobCreatedBy',
-        select: 'name email mobile profile.image',
-      });
+        // 3. Fetch jobs that user applied to
+        const jobs = await Job.find({
+            _id: { $in: appliedJobIds, $nin: reportedJobs },
+        })
+            .skip(skip)
+            .limit(Number(limit))
+            .sort({ createdAt: -1 })
+            .populate({
+                path: 'jobCreatedBy',
+                select: 'name email mobile profile.image',
+            });
 
-    // 4. Add interaction info to each job
-    const updatedJobs = await Promise.all(
-      jobs.map(async (job: any) => {
-        const interaction = appliedInteractions.find((i) =>
-          i.jobId.toString() === job._id.toString()
+        // 4. Add interaction info to each job
+        const updatedJobs = await Promise.all(
+            jobs.map(async (job: any) => {
+                const interaction = appliedInteractions.find((i) =>
+                    i.jobId.toString() === job._id.toString()
+                );
+                console.log(interaction, "interaction");
+
+                return {
+                    ...job.toObject(),
+                    interaction,
+                };
+            })
         );
-        console.log(interaction, "interaction");
 
-        return {
-          ...job.toObject(),
-          interaction,
-        };
-      })
-    );
+        const totalJobs = appliedJobIds.length;
 
-    const totalJobs = appliedJobIds.length;
-
-    res.status(200).json({
-      jobs: updatedJobs,
-      pagination: {
-        totalJobs,
-        totalPages: Math.ceil(totalJobs / Number(limit)),
-        currentPage: Number(page),
-        pageSize: Number(limit),
-      },
-    });
-  } catch (error: any) {
-    next(createError(error.status || 500, error.message || 'Internal Server Error'));
-  }
+        res.status(200).json({
+            jobs: updatedJobs,
+            pagination: {
+                totalJobs,
+                totalPages: Math.ceil(totalJobs / Number(limit)),
+                currentPage: Number(page),
+                pageSize: Number(limit),
+            },
+        });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || 'Internal Server Error'));
+    }
 };
 
 // 📌 Report on job

@@ -4,7 +4,7 @@ import User from "@/models/auth/auth.models";
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 
-// 📌 Create a new job
+// 📌 Make remove mentor
 export const makeRemoveMentor = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { isMentor } = req.body;
@@ -18,6 +18,22 @@ export const makeRemoveMentor = async (req: RequestType, res: Response, next: Ne
             success: true,
             message: "User detail updated successfully",
             data: updateUserProfileData
+        });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 get mentor list
+export const getMentorList = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const mentorListData = await User.find({ isMentor: true, confirmed: true, blocked: true });
+        res.status(201).json({
+            error: false,
+            success: true,
+            message: "Mentor fetch detail successfully",
+            count: mentorListData.length,
+            data: mentorListData
         });
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
