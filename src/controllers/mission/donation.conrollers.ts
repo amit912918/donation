@@ -67,7 +67,13 @@ export const getTopDonor = async (req: Request, res: Response, next: NextFunctio
         ]);
 
         if (topDonors.length === 0) {
-            throw createError(404, `No donations found for the selected ${time || 'weekly'} period.`);
+            res.status(200).json({
+            success: true,
+            error: false,
+            message: `No donations found for the selected ${time || 'weekly'} period`,
+            data: []
+        });
+            // throw createError(404, `No donations found for the selected ${time || 'weekly'} period.`);
         }
 
         // Get donor details
@@ -175,33 +181,31 @@ export const getMissionDonation = async (req: Request, res: Response, next: Next
 export const getAllDonors = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const donation = await Donation.aggregate([
-            {
-                $lookup: {
-                    from: 'users',
-                    localField: 'user',
-                    foreignField: '_id',
-                    as: 'userDetails'
-                }
-            },
-            { $unwind: '$userDetails' },
-            {
-                $lookup: {
-                    from: 'missions',
-                    localField: 'mission',
-                    foreignField: '_id',
-                    as: 'missionDetails'
-                }
-            },
-            { $unwind: '$missionDetails' },
-            {
-                $project: {
-                    profile: '$userDetails.profile',
-                    amount: 1,
-                    name: '$userDetails.name',
-                    mission: '$missionDetails'
-                }
+        {
+            $group: {
+            _id: '$user', // group by user ID
+            totalDonated: { $sum: '$amount' }
             }
+        },
+        {
+            $lookup: {
+            from: 'users',
+            localField: '_id', // match grouped _id with user._id
+            foreignField: '_id',
+            as: 'userDetails'
+            }
+        },
+        { $unwind: '$userDetails' },
+        {
+            $project: {
+            userId: '$_id',
+            name: '$userDetails.name',
+            profile: '$userDetails.profile',
+            totalDonated: 1
+            }
+        }
         ]);
+
         if (donation.length === 0) {
             return next(createError(404, "Donation not found"));
         }
