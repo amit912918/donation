@@ -1,10 +1,9 @@
-import { createError } from "@/helpers/common/backend.functions";
+import { createError, isBiodataComplete } from "@/helpers/common/backend.functions";
 import { RequestType } from "@/helpers/shared/shared.type";
 import User from "@/models/auth/auth.models";
 import BiodataInteraction from "@/models/matrimony/biodata.interaction.models";
 import Biodata from "@/models/matrimony/biodata.models";
 import { Request, Response, NextFunction } from "express";
-import mongoose from "mongoose";
 
 export const createBiodata = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
@@ -575,6 +574,26 @@ export const biodataCancelFavourite_Remove = async (req: RequestType, res: Respo
         );
 
         res.status(200).json({ message: "Interaction updated successfully", interaction: updated });
+    } catch (error: unknown) {
+        console.error("Error in biodata cancel remove and remove_from_favourite:", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
+    }
+};
+
+export const checkBiodataCompleted = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+       
+        const biodata = await Biodata.findOne({ profileCreatedById: req?.payload?.appUserId });
+
+        const isComplete = isBiodataComplete(biodata);
+
+        res.status(200).json({
+            error: false,
+            success: true,
+            message: "Interaction updated successfully", 
+            isComplete
+        });
     } catch (error: unknown) {
         console.error("Error in biodata cancel remove and remove_from_favourite:", error);
         const err = error instanceof Error ? error.message : "Internal server error";

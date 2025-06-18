@@ -39,3 +39,31 @@ export function validateContact(contact: string, isEmail: boolean): boolean {
     return phoneRegex.test(contact);
   }
 }
+
+export function isBiodataComplete(biodata: any): boolean {
+  if (!biodata) return false;
+
+  const requiredFields = [
+    'profileCreatedById', 'profileCreatedBy', 'relationWithCandiate',
+    'profileCount', 'gender', 'contact', 'state', 'city', 'BicholiyaId'
+  ];
+
+  const gotraFields = ['selfGotra', 'maaGotra', 'dadiGotra', 'naniGotra'];
+  const familyFields = ['fatherName', 'fatherOccupation', 'motherName', 'motherOccupation', 'familyLivingIn'];
+
+  const isBasicFilled = requiredFields.every(field => !!biodata[field]);
+
+  const isGotraFilled = gotraFields.every(field => !!biodata.gotraDetails?.[field]);
+  const isFamilyFilled = familyFields.every(field => !!biodata.familyDetails?.[field]);
+
+  const isAnyCandidateComplete = (biodata.candidate || []).some((cand: any) => {
+    const requiredCandidateFields = [
+      'name', 'dob', 'address', 'city', 'mobile',
+      'qualification', 'college', 'occupation',
+      'maritalStatus', 'assetInfo', 'drink', 'smoke', 'food'
+    ];
+    return requiredCandidateFields.every(field => !!cand[field]);
+  });
+
+  return isBasicFilled && isGotraFilled && isFamilyFilled && isAnyCandidateComplete;
+}
