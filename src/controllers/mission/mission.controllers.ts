@@ -201,11 +201,9 @@ export const getUserMissions = async (req: RequestType, res: Response, next: Nex
         // Extract query parameters with default values
         const { page = 1, limit = 10, title = '' } = req.query;
 
-        // Convert page and limit to numbers
         const pageNumber = parseInt(page as string, 10);
         const limitNumber = parseInt(limit as string, 10);
 
-        // Validate page and limit values
         if (isNaN(pageNumber) || pageNumber < 1) {
             throw createError(400, "Invalid page number. Page number must be a positive integer.");
         }
@@ -213,14 +211,13 @@ export const getUserMissions = async (req: RequestType, res: Response, next: Nex
             throw createError(400, "Invalid limit. Limit must be a positive integer.");
         }
 
-        // Construct the search query
-        const searchQuery = title ? { title: new RegExp(title as string, 'i'), missionCreatedBy: new mongoose.Types.ObjectId(req?.payload?.appUserId) } : {};
+        let searchQuery: any = {
+            missionCreatedBy: new mongoose.Types.ObjectId(req?.payload?.appUserId),
+        }
 
-        // Retrieve missions with pagination and sorting
-        // const missions = await Mission.find(searchQuery)
-        //     .sort({ createdAt: -1 })
-        //     .skip((pageNumber - 1) * limitNumber)
-        //     .limit(limitNumber);
+        if (typeof title === 'string') {
+            searchQuery.title = new RegExp(title.replace(/"/g, ''), 'i');
+        }
 
         const missions = await Mission.aggregate([
             {
@@ -257,15 +254,12 @@ export const getUserMissions = async (req: RequestType, res: Response, next: Nex
             { $skip: (pageNumber - 1) * limitNumber },
             { $limit: limitNumber }
         ]);
+        console.log(missions, "missions");
 
-
-        // Get the total count of documents matching the search query
         const totalMissions = await Mission.countDocuments(searchQuery);
 
-        // Calculate total pages
         const totalPages = Math.ceil(totalMissions / limitNumber);
 
-        // Respond with missions and pagination info
         res.status(200).json({
             missions,
             pagination: {

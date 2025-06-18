@@ -7,12 +7,20 @@ import mongoose from 'mongoose';
 // Create news
 export const createNews = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
-        const { title, content, image, author, category, isPublished } = req.body;
+        const { title, content, fileName, fileType, author = "admin", category, isPublished } = req.body;
+        console.log(fileType, "fileType");
+
+        if(fileType !== 'image' && fileType !== 'video') {
+            return next(createError(400, 'Please check fileType, it should be image or video'));
+        }
+
+        if (!title && !content && !fileName && !fileType) return next(createError(400, 'Check all required field'));
 
         const news = new News({
             title,
             content,
-            image,
+            fileName,
+            fileType,
             author,
             category,
             isPublished,
@@ -21,7 +29,12 @@ export const createNews = async (req: RequestType, res: Response, next: NextFunc
         });
 
         const savedNews = await news.save();
-        res.status(201).json(savedNews);
+        res.status(201).json({
+            error: false,
+            success: true,
+            message: "Create news successfully",
+            data: savedNews
+        });
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
@@ -30,9 +43,30 @@ export const createNews = async (req: RequestType, res: Response, next: NextFunc
 // Get all news
 export const getAllNews = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const newsList = await News.find().sort({ createdAt: -1 });
+        const newsList = await News.find()
+        .sort({ createdAt: -1 });
         res.status(200).json(newsList);
     } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// Get news for user
+export const getNewsForUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+
+        const newsList = await News.find()
+        .populate("publishedById", "name profile")
+        .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            error: false,
+            success: true,
+            count: newsList.length,
+            data: newsList
+        });
+    } catch (error: any) {
+        console.log("Error in get news for user", error);
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
@@ -66,6 +100,95 @@ export const deleteNews = async (req: Request, res: Response, next: NextFunction
         if (!deleted) return next(createError(404, 'News not found'));
         res.status(200).json({ message: 'News deleted successfully' });
     } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// Like news handler
+export const likeNewsHandler = async (req: RequestType, res: Response, next: NextFunction) => {
+    try {
+        const userId: any = req?.payload?.appUserId;
+        const newsId = req.params.id;
+        const news = await News.findById(newsId);
+        if (!news) return next(createError(404, 'News not found'));
+
+        const alreadyLiked = news.likes.includes(userId);
+
+        if (alreadyLiked) {
+            news.likes = news.likes.filter((id) => id.toString() !== userId);
+        } else {
+            news.likes.push(userId);
+        }
+
+        await news.save();
+
+        res.status(200).json({
+            error: false,
+            success: true,
+            message: alreadyLiked ? 'Unliked' : 'Liked',
+            totalLikes: news.likes.length,
+        });
+    } catch (error: any) {
+        console.log("Error in like news handler", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// Comment handler
+export const commentHandler = async (req: RequestType, res: Response, next: NextFunction) => {
+    try {
+        const userId: any = req.payload?.appUserId;
+        const newsId = req.params.id;
+        const { comment } = req.body;
+        const news = await News.findById(newsId);
+        if (!news) return next(createError(404, 'News not found'));
+
+        const newComment = {
+            user: userId,
+            comment,
+            createdAt: new Date(),
+        };
+
+        news.comments.push(newComment);
+        await news.save();
+
+        res.status(200).json({
+            error: false,
+            success: true,
+            message: 'Comment added',
+            comment: newComment,
+            totalComments: news.comments.length,
+        });
+    } catch (error: any) {
+        console.log("Error in comment handler", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));;
+    }
+};
+
+// Share handler
+export const shareHandler = async (req: RequestType, res: Response, next: NextFunction) => {
+    const userId: any = req.payload?.appUserId;
+    const newsId = req.params.id;
+
+    try {
+        const news = await News.findById(newsId);
+        if (!news) return next(createError(404, 'News not found'));
+
+        const alreadyShared = news.shares.includes(userId);
+
+        if (!alreadyShared) {
+            news.shares.push(userId);
+            await news.save();
+        }
+
+        res.status(200).json({
+            error: false,
+            success: true,
+            message: alreadyShared ? 'Already shared' : 'News shared',
+            totalShares: news.shares.length,
+        });
+    } catch (error: any) {
+        console.log("Error in share handler", error);
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
