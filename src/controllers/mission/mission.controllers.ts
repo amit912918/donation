@@ -21,17 +21,17 @@ export const createMission = async (req: RequestType, res: Response, next: NextF
 
         const data: IMissionData = value;
 
-        // 📍 Create bank entry
+        // 📍 Create bank entry (embedded sub-document)
         const newBankEntry = {
             accountNumber: data.accountNumber,
             ifscCode: data.ifscCode,
             accountHolderName: data.accountHolderName,
             bankName: data.bankName,
             upiId: data.upiId,
-            userId: new mongoose.Types.ObjectId(req.payload?.appUserId) // cast to ObjectId
+            userId: new mongoose.Types.ObjectId(req.payload?.appUserId)
         };
 
-        // 📍 Create mission
+        // 📍 Create mission (mission_id will be auto-generated in pre-save hook)
         const newMission = new Mission({
             title: data.title,
             description: data.description,
@@ -41,27 +41,33 @@ export const createMission = async (req: RequestType, res: Response, next: NextF
             needyPersonCity: data.needyPersonCity,
             memberCount: data.memberCount,
             isWife: data.isWife,
-            missionCreatedBy: new mongoose.Types.ObjectId(req?.payload?.appUserId),
+            missionCreatedBy: new mongoose.Types.ObjectId(req.payload?.appUserId),
             contactNumber: data.contactNumber,
             bankDetails: newBankEntry,
             documents: data.documents,
         });
 
+        // 🛑 Save inside transaction to ensure consistency
         await newMission.save({ session });
 
-        // ✅ Commit if all goes well
+        // ✅ Commit transaction
         await session.commitTransaction();
         session.endSession();
 
-        res.status(201).json({ message: "Mission created successfully", newMission });
+        res.status(201).json({
+            message: "Mission created successfully",
+            mission_id: newMission.mission_id, // 🆗 Optional: return new ID
+            newMission,
+        });
 
     } catch (error: any) {
         await session.abortTransaction();
         session.endSession();
-        console.log(error, "Error in create mission");
+        console.error("Error in createMission:", error);
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
+
 
 // 📌 Upload mission image
 export const uploadMissionImages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -124,7 +130,7 @@ export const uploadMissionFiles = async (req: Request, res: Response, next: Next
 // 📌 Get all missions
 export const getAllMissions = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
-        const { page = 1, limit = 10, title = '' } = req.query;
+        const { page = 1, limit = 10, title = '', mission_id = '' } = req.query;
 
         const pageNumber = parseInt(page as string, 10);
         const limitNumber = parseInt(limit as string, 10);
@@ -136,7 +142,17 @@ export const getAllMissions = async (req: RequestType, res: Response, next: Next
             throw createError(400, "Invalid limit. Limit must be a positive integer.");
         }
 
-        const searchQuery = title ? { title: new RegExp(title as string, 'i'), missionCreatedBy: { $ne: req?.payload?.appUserId } } : { missionCreatedBy: { $ne: req?.payload?.appUserId } };
+        let searchQuery: any = {
+            missionCreatedBy: { $ne: req?.payload?.appUserId }
+        }
+
+        if (typeof title === 'string') {
+            searchQuery.title = new RegExp(title.replace(/"/g, ''), 'i');
+        }
+
+        if (typeof mission_id === 'string') {
+            searchQuery.mission_id = new RegExp(mission_id.replace(/"/g, ''), 'i');
+        }
 
         const missions = await Mission.find(searchQuery)
             .sort({ createdAt: -1 })
@@ -181,13 +197,13 @@ export const getAllMissions = async (req: RequestType, res: Response, next: Next
         const totalPages = Math.ceil(totalMissions / limitNumber);
 
         res.status(200).json({
-            missions: enrichedMissions,
             pagination: {
                 totalMissions,
                 totalPages,
                 currentPage: pageNumber,
                 pageSize: limitNumber
-            }
+            },
+            missions: enrichedMissions
         });
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
