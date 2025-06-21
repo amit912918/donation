@@ -52,10 +52,30 @@ export const getAllNews = async (req: Request, res: Response, next: NextFunction
 };
 
 // Get news for user
-export const getNewsForUser = async (req: Request, res: Response, next: NextFunction) => {
+export const getNewsForUser = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
 
-        const newsList = await News.find()
+        const newsList = await News.find({ publishedById: { $ne: req?.payload?.appUserId } })
+        .populate("publishedById", "name profile")
+        .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            error: false,
+            success: true,
+            count: newsList.length,
+            data: newsList
+        });
+    } catch (error: any) {
+        console.log("Error in get news for user", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// Get news by user
+export const getNewsByUser = async (req: RequestType, res: Response, next: NextFunction) => {
+    try {
+
+        const newsList = await News.find({ publishedById: req?.payload?.appUserId })
         .populate("publishedById", "name profile")
         .sort({ createdAt: -1 });
 
