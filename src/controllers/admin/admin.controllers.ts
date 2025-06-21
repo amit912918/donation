@@ -25,6 +25,26 @@ export const makeRemoveMentor = async (req: RequestType, res: Response, next: Ne
     }
 };
 
+// 📌 Make remove bicholiya
+export const makeRemoveBicholiya = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { isBicholiya } = req.body;
+        const updateUserProfileData = await User.findByIdAndUpdate(
+            req.params.userId,
+            { isBicholiya },
+            { new: true, runValidators: true }
+        );
+        res.status(201).json({
+            error: false,
+            success: true,
+            message: "User detail updated successfully",
+            data: updateUserProfileData
+        });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
 // 📌 get mentor list
 export const getMentorList = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
