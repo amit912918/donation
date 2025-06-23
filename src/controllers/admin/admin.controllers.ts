@@ -62,7 +62,7 @@ export const getMentorList = async (req: RequestType, res: Response, next: NextF
 
         const mentorListData = await User.find(filter);
 
-        res.status(201).json({
+        res.status(200).json({
             error: false,
             success: true,
             message: "Mentor fetch detail successfully",
