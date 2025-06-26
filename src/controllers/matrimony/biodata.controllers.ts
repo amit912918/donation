@@ -4,6 +4,7 @@ import User from "@/models/auth/auth.models";
 import BiodataInteraction from "@/models/matrimony/biodata.interaction.models";
 import Biodata from "@/models/matrimony/biodata.models";
 import { Request, Response, NextFunction } from "express";
+import mongoose from "mongoose";
 
 export const createBiodata = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
@@ -22,7 +23,7 @@ export const createBiodata = async (req: RequestType, res: Response, next: NextF
                 ...req.body,
                 profileCreatedById: req.payload?.appUserId,
             });
-            res.status(201).json({ success: true, message: "Biodata created", data: newBiodata });
+            res.status(200).json({ success: true, message: "Biodata created", data: newBiodata });
             return;
         }
     } catch (error) {
@@ -151,15 +152,61 @@ export const getNewlyJoined = async (req: RequestType, res: Response, next: Next
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
         
-        const newlyJoinedData = await Biodata.find({ profileCreatedById: { $ne: req?.payload?.appUserId } })
-        .skip(skip)
-        .limit(limit)
-        .sort({ createdAt: -1 });
+                const newlyJoinedData = await Biodata.aggregate([
+        {
+            $match: {
+            profileCreatedById: { $ne: req?.payload?.appUserId }
+            },
+        },
+        {
+            $lookup: {
+            from: 'biodatainteractions',
+            let: { biodataId: '$_id' },
+            pipeline: [
+                {
+                $match: {
+                    $expr: {
+                    $and: [
+                        { $eq: ['$biodataId', '$$biodataId'] },
+                        { $eq: ['$isCheckout', true] },
+                        { $eq: ['$userId', new mongoose.Types.ObjectId(req?.payload?.appUserId)] }
+                    ]
+                    }
+                }
+                }
+            ],
+            as: 'userInteractions'
+            }
+        },
+        {
+            $match: {
+            'userInteractions': { $eq: [] } // Only allow biodatas where the user has NOT checked out
+            }
+        },
+        {
+            $sort: { createdAt: -1 }
+        },
+        {
+            $skip: skip
+        },
+        {
+            $limit: limit
+        },
+        {
+            $project: {
+            userInteractions: 0
+            }
+        }
+        ]);
+
+
+
+        const totalJoinedCount = await Biodata.countDocuments({});
 
         res.status(200).json({
             success: true,
             error: false,
-            count: newlyJoinedData?.length,
+            count: totalJoinedCount,
             data: newlyJoinedData
         });
     } catch (error: unknown) {
@@ -179,9 +226,6 @@ export const recommendationBiodata = async (req: RequestType, res: Response, nex
         
         const userBioData = await Biodata.findOne({profileCreatedById: appUserId}).select('gotraDetails');
 
-        // const recommendationData = await Biodata.find({ profileCreatedById: { $ne: req?.payload?.appUserId }, gotraDetails: userBioData?.gotraDetails})
-        // .skip(skip)
-        // .limit(limit);
         const allTopMatchData = await Biodata.aggregate([
             {
                 $match: { profileCreatedById: { $ne: req?.payload?.appUserId }, gotraDetails: userBioData?.gotraDetails}
@@ -449,7 +493,7 @@ export const biodataInteraction = async (req: RequestType, res: Response, next: 
 
         await newInteraction.save();
 
-        res.status(201).json({ message: "Interaction recorded successfully", interaction: newInteraction });
+        res.status(200).json({ message: "Interaction recorded successfully", interaction: newInteraction });
     } catch (error: unknown) {
         console.error("Error in biodata Interaction:", error);
         const err = error instanceof Error ? error.message : "Internal server error";
@@ -522,7 +566,7 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
 
         await newInteraction.save();
 
-        res.status(201).json({ message: "Interaction recorded successfully", interaction: newInteraction });
+        res.status(200).json({ message: "Interaction recorded successfully", interaction: newInteraction });
     } catch (error: unknown) {
         console.error("Error in biodata send accept:", error);
         const err = error instanceof Error ? error.message : "Internal server error";

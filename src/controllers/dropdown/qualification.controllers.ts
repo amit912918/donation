@@ -8,7 +8,7 @@ export const createQualification = async (req: Request, res: Response, next: Nex
         const { qualificationName, description } = req.body;
         const qualification = new Qualification({ qualificationName, description });
         const saved = await qualification.save();
-        res.status(201).json(saved);
+        res.status(200).json(saved);
     } catch (err) {
         next(err);
     }

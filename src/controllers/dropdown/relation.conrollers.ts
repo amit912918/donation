@@ -8,7 +8,7 @@ export const createRelation = async (req: Request, res: Response, next: NextFunc
         const { relationName, description } = req.body;
         const relation = new Relation({ relationName, description });
         const saved = await relation.save();
-        res.status(201).json(saved);
+        res.status(200).json(saved);
     } catch (err) {
         next(err);
     }

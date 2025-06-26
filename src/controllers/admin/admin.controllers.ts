@@ -14,7 +14,7 @@ export const makeRemoveMentor = async (req: RequestType, res: Response, next: Ne
             { isMentor },
             { new: true, runValidators: true }
         );
-        res.status(201).json({
+        res.status(200).json({
             error: false,
             success: true,
             message: "User detail updated successfully",
@@ -34,7 +34,7 @@ export const makeRemoveBicholiya = async (req: RequestType, res: Response, next:
             { isBicholiya },
             { new: true, runValidators: true }
         );
-        res.status(201).json({
+        res.status(200).json({
             error: false,
             success: true,
             message: "User detail updated successfully",
@@ -60,7 +60,27 @@ export const getMentorList = async (req: RequestType, res: Response, next: NextF
             filter.name = new RegExp(name.replace(/"/g, ''), 'i');
         }
 
-        const mentorListData = await User.find(filter);
+        const mentorListData = await User.aggregate([
+        { $match: filter },
+        {
+            $lookup: {
+            from: 'news',
+            localField: '_id',
+            foreignField: 'publishedBy',
+            as: 'posts',
+            },
+        },
+        {
+            $addFields: {
+            postCount: { $size: '$posts' },
+            },
+        },
+        {
+            $project: {
+            posts: 0,
+            },
+        },
+        ]);
 
         res.status(200).json({
             error: false,
@@ -86,7 +106,7 @@ export const activeMissionByAdmin = async (req: RequestType, res: Response, next
             { new: true, runValidators: true }
         );
 
-        res.status(201).json({
+        res.status(200).json({
             error: false,
             success: true,
             message: "Mission updated successfully",

@@ -8,7 +8,7 @@ export const createProfileCount = async (req: Request, res: Response, next: Next
         const { name, description, count } = req.body;
         const profile = new ProfileCount({ name, description, count });
         const saved = await profile.save();
-        res.status(201).json(saved);
+        res.status(200).json(saved);
     } catch (err) {
         next(err);
     }

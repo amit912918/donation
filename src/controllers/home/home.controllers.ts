@@ -24,7 +24,7 @@ export const createBanner = async (req: Request, res: Response, next: NextFuncti
         });
 
         await newBanner.save();
-        res.status(201).json({ message: "Banner created successfully", newBanner });
+        res.status(200).json({ message: "Banner created successfully", newBanner });
     } catch (error: any) {
         console.log("Error in create banner", error);
         next(createError(500, error?.message || "Internal server error"));
@@ -116,7 +116,7 @@ export const updateHomeData = async (req: Request, res: Response, next: NextFunc
         const { content, image } = req.body;
         console.log(content, image);
 
-        res.status(201).json({ message: "Home data created successfully" });
+        res.status(200).json({ message: "Home data created successfully" });
     } catch (error: any) {
         console.log("Error in create banner", error);
         next(createError(500, error?.message || "Internal server error"));

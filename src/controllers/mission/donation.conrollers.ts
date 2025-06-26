@@ -21,7 +21,7 @@ export const donateToMission = async (req: RequestType, res: Response, next: Nex
         const donation = new Donation({ user: userId, mission: missionId, amount: amount });
         await donation.save();
 
-        res.status(201).json({ message: "Donation successful!" });
+        res.status(200).json({ message: "Donation successful!" });
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }

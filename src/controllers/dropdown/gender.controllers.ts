@@ -12,7 +12,7 @@ export const createGender = async (req: Request, res: Response, next: NextFuncti
         }
         const gender = new Gender({ genderName, description });
         const saved = await gender.save();
-        res.status(201).json(saved);
+        res.status(200).json(saved);
     } catch (err) {
         next(err);
     }

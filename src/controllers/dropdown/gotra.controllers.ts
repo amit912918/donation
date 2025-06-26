@@ -8,7 +8,7 @@ export const createGotra = async (req: Request, res: Response, next: NextFunctio
         const { gotraName, description } = req.body;
         const gotra = new Gotra({ gotraName, description });
         const saved = await gotra.save();
-        res.status(201).json(saved);
+        res.status(200).json(saved);
     } catch (err) {
         next(err);
     }

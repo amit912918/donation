@@ -34,7 +34,7 @@ export const createJob = async (req: RequestType, res: Response, next: NextFunct
         });
 
         await newJob.save();
-        res.status(201).json({ message: "Job created successfully", job: newJob });
+        res.status(200).json({ message: "Job created successfully", job: newJob });
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
@@ -412,7 +412,7 @@ export const createOrUpdateJobInteraction = async (req: RequestType, res: Respon
         });
         await newInteraction.save();
 
-        res.status(201).json({ message: "Interaction recorded successfully", interaction: newInteraction });
+        res.status(200).json({ message: "Interaction recorded successfully", interaction: newInteraction });
     } catch (error: any) {
         if (error.code === 11000) {
             next(createError(400, "Duplicate interaction not allowed."));
