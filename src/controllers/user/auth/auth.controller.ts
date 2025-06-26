@@ -149,7 +149,7 @@ export const registerUser = async (req: RequestType, res: Response, next: NextFu
     const token = generateToken(user._id);
 
     // Return success response
-    res.status(201).json({
+    res.status(200).json({
       message: "User registered successfully.",
       user: {
         _id: user._id,

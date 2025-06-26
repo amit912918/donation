@@ -8,7 +8,7 @@ export const createSibling = async (req: Request, res: Response, next: NextFunct
         const { siblingName, description, occupation } = req.body;
         const sibling = new Sibling({ siblingName, description, occupation });
         const saved = await sibling.save();
-        res.status(201).json(saved);
+        res.status(200).json(saved);
     } catch (err) {
         next(err);
     }

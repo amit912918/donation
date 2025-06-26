@@ -54,7 +54,7 @@ export const createMission = async (req: RequestType, res: Response, next: NextF
         await session.commitTransaction();
         session.endSession();
 
-        res.status(201).json({
+        res.status(200).json({
             message: "Mission created successfully",
             mission_id: newMission.mission_id, // 🆗 Optional: return new ID
             newMission,

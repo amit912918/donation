@@ -8,7 +8,7 @@ export const createMarital = async (req: Request, res: Response, next: NextFunct
         const { maritalName, description } = req.body;
         const marital = new Marital({ maritalName, description });
         const saved = await marital.save();
-        res.status(201).json(saved);
+        res.status(200).json(saved);
     } catch (err) {
         next(err);
     }

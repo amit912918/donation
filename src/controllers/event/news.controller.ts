@@ -29,7 +29,7 @@ export const createNews = async (req: RequestType, res: Response, next: NextFunc
         });
 
         const savedNews = await news.save();
-        res.status(201).json({
+        res.status(200).json({
             error: false,
             success: true,
             message: "Create news successfully",
@@ -95,8 +95,14 @@ export const getNewsByUser = async (req: RequestType, res: Response, next: NextF
 export const getNewsById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const news = await News.findById(req.params.id);
-        if (!news) return next(createError(404, 'News not found'));
-        res.status(200).json(news);
+        // if (!news) return next(createError(400, 'News not found'));
+        res.status(200).json(
+            {
+                success: true,
+                error: false,
+                message: news ? "News get successfully" : "News not found",
+                data: news
+            });
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
