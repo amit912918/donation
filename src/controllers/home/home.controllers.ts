@@ -61,7 +61,13 @@ export const uploadBannerImages = async (req: Request, res: Response, next: Next
 export const getAllBanners = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const banners = await BannerModel.find({ isActive: true }).sort("sequence");
-        res.status(200).json(banners);
+        const bannerTitle = await BannerModel.find({ isActive: true }).sort("sequence").select("title -_id");
+        res.status(200).json({
+            error: false,
+            success: true,
+            bannerTitle,
+            banners
+        });
     } catch (error: any) {
         console.log("Error in get all banner", error);
         next(createError(500, error?.message || "Internal server error"));
