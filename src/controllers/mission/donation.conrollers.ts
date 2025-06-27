@@ -250,7 +250,7 @@ export const getDonationByUser = async (req: RequestType, res: Response, next: N
                     amount: 1,
                     name: '$userDetails.name',
                     mission: '$missionDetails',
-                    donatedAt: '$createdAt'
+                    donatedAt: '$donatedAt'
                 }
             }
         ]);

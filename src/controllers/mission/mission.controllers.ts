@@ -130,7 +130,7 @@ export const uploadMissionFiles = async (req: Request, res: Response, next: Next
 // 📌 Get all missions
 export const getAllMissions = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
-        const { page = 1, limit = 10, title = '', mission_id = '' } = req.query;
+        const { page = 1, limit = 10, searchKey = '' } = req.query;
 
         const pageNumber = parseInt(page as string, 10);
         const limitNumber = parseInt(limit as string, 10);
@@ -142,27 +142,33 @@ export const getAllMissions = async (req: RequestType, res: Response, next: Next
             throw createError(400, "Invalid limit. Limit must be a positive integer.");
         }
 
-        let searchQuery: any = {
-            missionCreatedBy: { $ne: req?.payload?.appUserId }
-        }
+        let searchQuery: any = { 
+            $and: []
+         };
+        // let searchQuery: any = {
+        // $and: [
+        //     { missionCreatedBy: { $ne: req?.payload?.appUserId } }
+        // ]
+        // };
 
-        if (typeof title === 'string') {
-            searchQuery.title = new RegExp(title.replace(/"/g, ''), 'i');
-        }
-
-        if (typeof mission_id === 'string') {
-            searchQuery.mission_id = new RegExp(mission_id.replace(/"/g, ''), 'i');
+        if (typeof searchKey === 'string' && searchKey.trim() !== '') {
+            const regex = new RegExp(searchKey.replace(/"/g, ''), 'i');
+            searchQuery.$and.push({
+                $or: [
+                { title: regex },
+                { mission_id: regex }
+                ]
+            });
         }
 
         const missions = await Mission.find(searchQuery)
             .sort({ createdAt: -1 })
             .skip((pageNumber - 1) * limitNumber)
             .limit(limitNumber)
-            .lean(); // use lean() so we get plain objects we can modify
+            .lean();
 
         const missionIds = missions.map(m => m._id);
 
-        // Aggregate donation stats per mission
         const donationStats = await Donation.aggregate([
             { $match: { mission: { $in: missionIds } } },
             {
@@ -329,7 +335,7 @@ export const getMissionById = async (req: Request, res: Response, next: NextFunc
 // 📌 Get latest mission
 export const getLatestMission = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
-        const mission = await Mission.find({ missionCreatedBy: { $ne: req?.payload?.appUserId } }).sort({ createdAt: -1 }).limit(5);;
+        const mission = await Mission.find({}).sort({ createdAt: -1 }).limit(5);
         if (!mission) {
             throw createError(404, "Mission not found");
         }
