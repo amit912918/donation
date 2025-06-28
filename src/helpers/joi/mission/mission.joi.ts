@@ -12,6 +12,8 @@ export const missionSchema = Joi.object({
         daughter: Joi.number().required()
     }),
     isWife: Joi.bool().required(),
+    inclMother: Joi.bool().required(),
+    inclFather: Joi.bool().required(),
     contactNumber: Joi.string().pattern(/^[0-9]{10}$/).required(),
     documents: Joi.array().optional(),
     accountNumber: Joi.string().required(),
