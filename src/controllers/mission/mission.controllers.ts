@@ -41,6 +41,8 @@ export const createMission = async (req: RequestType, res: Response, next: NextF
             needyPersonCity: data.needyPersonCity,
             memberCount: data.memberCount,
             isWife: data.isWife,
+            inclMother: data.inclMother,
+            inclFather: data.inclFather,
             missionCreatedBy: new mongoose.Types.ObjectId(req.payload?.appUserId),
             contactNumber: data.contactNumber,
             bankDetails: newBankEntry,

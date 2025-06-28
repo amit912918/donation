@@ -32,6 +32,8 @@ const MissionSchema: Schema = new Schema(
             daughter: { type: Number, required: true }
         },
         isWife: { type: Boolean, required: true, defaultValue: false },
+        inclMother: { type: Boolean, required: true, defaultValue: false },
+        inclFather: { type: Boolean, required: true, defaultValue: false },
         contactNumber: { type: String, required: true },
         bankDetails: BankDetailsSchema,
         missionCreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },

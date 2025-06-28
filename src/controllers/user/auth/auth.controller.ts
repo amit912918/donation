@@ -170,9 +170,9 @@ export const updateUserProfile = async (req: RequestType, res: Response, next: N
   try {
     const userId = req.payload?.appUserId;
 
-    const { name, gender, dob, address, city, Language } = req.body;
+    const { name, gender, dob, address, city, state, country, Language } = req.body;
 
-    const { error } = updateProfileSchema.validate({ name, gender, dob, address, city, Language });
+    const { error } = updateProfileSchema.validate({ name, gender, dob, address, city, state, country, Language });
     if (error) {
       return next(createError(400, error.details[0].message));
     }
@@ -187,6 +187,8 @@ export const updateUserProfile = async (req: RequestType, res: Response, next: N
     if (dob) profileUpdates.dob = dob;
     if (address) profileUpdates.address = address;
     if (city) profileUpdates.city = city;
+    if (state) profileUpdates.state = state;
+    if (country) profileUpdates.country = country;
     if (Language) profileUpdates.Language = Language;
 
     if (Object.keys(profileUpdates).length > 0) {

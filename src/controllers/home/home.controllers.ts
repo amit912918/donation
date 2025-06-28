@@ -2,34 +2,92 @@ import { NextFunction, Request, Response } from "express";
 import { createError } from "@/helpers/common/backend.functions";
 import BannerModel from "@/models/home/banner.models";
 import { ContactOption } from "@/models/home/contactoption.models";
+import { RequestType } from "@/helpers/shared/shared.type";
 
 // 📌 Create a new banner
 export const createBanner = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const { title, imageUrl, redirectUrl } = req.body;
+        const { category, title, imageUrl, redirectUrl } = req.body;  // category can be home, mission or job
 
-        if (!title || !imageUrl) {
-            throw createError(400, "Title and imageUrl are required");
+        if (!category && !title && !imageUrl) {
+            throw createError(400, "Title, imageUrl and category are required");
         }
 
-        // Get the last sequence number and increment it
-        const lastBanner = await BannerModel.findOne().sort("-sequence");
+        const lastBanner = await BannerModel.findOne({ category }).sort("-sequence");
         const sequence = lastBanner ? lastBanner.sequence + 1 : 1;
 
-        const newBanner = new BannerModel({
-            title,
-            imageUrl,
-            redirectUrl,
-            sequence,
-        });
+        const bannerPayload = {
+                    title,
+                    imageUrl,
+                    redirectUrl,
+                    sequence,
+                    category
+                };
+        const newBanner = new BannerModel(bannerPayload);
+        await newBanner.save();            
 
-        await newBanner.save();
-        res.status(200).json({ message: "Banner created successfully", newBanner });
+        res.status(200).json({ 
+            error: false,
+            success: true,
+            message: `Banner ${category} created successfully`
+        });
     } catch (error: any) {
         console.log("Error in create banner", error);
         next(createError(500, error?.message || "Internal server error"));
     }
 };
+
+// 📌 Create a new banner
+// export const createBanner = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+//     try {
+//         const { category = 'home', title, imageUrl, redirectUrl } = req.body;  // category can be home, mission or job
+
+//         if (!category && !title && !imageUrl) {
+//             throw createError(400, "Title and imageUrl are required");
+//         }
+
+//         const bannerPayload: any = {
+//                     title,
+//                     imageUrl,
+//                     redirectUrl
+//                 };
+
+//         switch (category) {
+//             case 'home':
+//                 const lastBanner1 = await BannerModel.findOne().sort("-sequence");
+//                 const sequence1 = lastBanner1 ? lastBanner1.sequence + 1 : 1;
+//                 bannerPayload.sequence = sequence1;
+//                 const newBanner1 = new BannerModel(bannerPayload);
+//                 await newBanner1.save();
+//                 break;
+//             case 'mission':
+//                 const lastBanner2 = await MissionBannerModel.findOne().sort("-sequence");
+//                 const sequence2 = lastBanner2 ? lastBanner2.sequence + 1 : 1;
+//                 bannerPayload.sequence = sequence2;
+//                 const newBanner2 = new MissionBannerModel(bannerPayload);
+//                 await newBanner2.save();
+//                 break;
+//             case 'job':
+//                 const lastBanner3 = await JobBannerModel.findOne().sort("-sequence");
+//                 const sequence3 = lastBanner3 ? lastBanner3.sequence + 1 : 1;
+//                 bannerPayload.sequence = sequence3;
+//                 const newBanner3 = new JobBannerModel(bannerPayload);
+//                 await newBanner3.save();
+//                 break;
+//             default:
+//                 break;
+//         }
+
+//         res.status(200).json({ 
+//             error: false,
+//             success: true,
+//             message: `Banner ${category} created successfully`
+//         });
+//     } catch (error: any) {
+//         console.log("Error in create banner", error);
+//         next(createError(500, error?.message || "Internal server error"));
+//     }
+// };
 
 // 📌 Upload banner image
 export const uploadBannerImages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -56,12 +114,13 @@ export const uploadBannerImages = async (req: Request, res: Response, next: Next
     }
 };
 
-
 // 📌 Get all banners
-export const getAllBanners = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getAllBanners = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const banners = await BannerModel.find({ isActive: true }).sort("sequence");
-        const bannerTitle = await BannerModel.find({ isActive: true }).sort("sequence").select("title -_id");
+        const { category = 'home' } = req.query;
+        console.log(category, "category");
+        const banners = await BannerModel.find({ category, isActive: true }).sort("sequence");
+        const bannerTitle = await BannerModel.find({ category, isActive: true }).sort("sequence").select("title -_id");
         res.status(200).json({
             error: false,
             success: true,

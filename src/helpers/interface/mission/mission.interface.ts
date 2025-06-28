@@ -10,6 +10,8 @@ export interface IMissionData {
         daughter: number
     };
     isWife: boolean,
+    inclMother: boolean,
+    inclFather: boolean,
     contactNumber: string;
     documents?: string[];
     accountNumber: string;
