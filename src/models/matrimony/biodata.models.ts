@@ -19,7 +19,7 @@ export interface ICandidate extends Document {
     drink: string;
     smoke: string;
     food: string;
-    photo?: string;
+    photos?: string[];
 }
 
 const JobSchema: Schema = new Schema({
@@ -47,7 +47,7 @@ const CandidateSchema: Schema = new Schema({
     drink: { type: String, required: true },
     smoke: { type: String, required: true },
     food: { type: String, required: true },
-    photo: { type: String },
+    photos: { type: [String], default: [] },
 }, { timestamps: true });
 
 export interface ISibling {
