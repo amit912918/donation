@@ -299,15 +299,15 @@ export const getUserMissions = async (req: RequestType, res: Response, next: Nex
 };
 
 // 📌 Get a single mission by ID
-export const getMissionById = async (req: Request, res: Response, next: NextFunction) => {
+export const getMissionById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const mission = await Mission.findById(req.params.id).lean(); // .lean() gives plain object
+        const mission = await Mission.findById(req.params.id).lean();
 
         if (!mission) {
-            throw createError(404, "Mission not found");
+            res.status(200).json({});
+            return;
         }
 
-        // Aggregate donation stats for the mission
         const donationStats = await Donation.aggregate([
             { $match: { mission: mission._id } },
             {
@@ -321,7 +321,6 @@ export const getMissionById = async (req: Request, res: Response, next: NextFunc
 
         const { totalAmount = 0, totalCount = 0 } = donationStats[0] || {};
 
-        // Add donation stats to mission object
         const enrichedMission = {
             ...mission,
             totalDonations: totalCount,
@@ -351,10 +350,42 @@ export const getLatestMission = async (req: RequestType, res: Response, next: Ne
 export const getMissionCreatedByUser = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
         const mission = await Mission.find({ missionCreatedBy: req?.payload?.appUserId}).sort({ createdAt: -1 });
-        if (!mission) {
-            throw createError(404, "Mission not found");
-        }
-        res.status(200).json(mission);
+
+        const missionIds = mission.map(m => m._id);
+
+        const donationStats = await Donation.aggregate([
+            { $match: { mission: { $in: missionIds } } },
+            {
+                $group: {
+                    _id: "$mission",
+                    totalAmount: { $sum: "$amount" },
+                    totalCount: { $sum: 1 }
+                }
+            }
+        ]);
+
+        // Map for quick lookup
+        const donationMap = donationStats.reduce((acc: any, curr: any) => {
+            acc[curr._id.toString()] = {
+                totalDonations: curr.totalCount,
+                totalAmount: curr.totalAmount
+            };
+            return acc;
+        }, {} as Record<string, { totalDonations: number, totalAmount: number }>);
+
+        // Attach donation data to each mission
+        const enrichedMissions = mission.map((m: any) => {
+            const stats = donationMap[m._id.toString()] || { totalDonations: 0, totalAmount: 0 };
+            return {
+                ...m,
+                totalDonations: stats.totalDonations,
+                totalDonationAmount: stats.totalAmount
+            };
+        });
+        
+        res.status(200).json({
+            mission: enrichedMissions
+        });
     } catch (error: any) {
         console.log("Error in mission created by user", error);
         next(createError(error.status || 500, error.message || "Internal Server Error"));
