@@ -254,9 +254,7 @@ export const getDonationByUser = async (req: RequestType, res: Response, next: N
                 }
             }
         ]);
-        if (donation.length === 0) {
-            return next(createError(404, "Donation not found"));
-        }
+        
         res.status(200).json({
             error: false,
             success: true,
