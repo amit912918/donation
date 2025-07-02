@@ -347,7 +347,7 @@ export const getLatestMission = async (req: RequestType, res: Response, next: Ne
 // 📌 Get mission created by user
 export const getMissionCreatedByUser = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
-        const mission = await Mission.find({ missionCreatedBy: req?.payload?.appUserId}).sort({ createdAt: -1 });
+        const mission = await Mission.find({ missionCreatedBy: req?.payload?.appUserId}).sort({ createdAt: -1 }).lean();
 
         const missionIds = mission.map(m => m._id);
 
