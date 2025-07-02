@@ -135,10 +135,6 @@ export const getDonateById = async (req: Request, res: Response, next: NextFunct
                 }
             }
         ]);
-        console.log(donation, "donation");
-        if (donation.length === 0) {
-            return next(createError(404, "Donation not found"));
-        }
         res.status(200).json(donation);
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
@@ -168,9 +164,6 @@ export const getMissionDonation = async (req: Request, res: Response, next: Next
                 }
             }
         ]);
-        if (donation.length === 0) {
-            return next(createError(404, "Donation not found"));
-        }
         res.status(200).json(donation);
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));
@@ -206,13 +199,10 @@ export const getAllDonors = async (req: Request, res: Response, next: NextFuncti
             }
         ]);
 
-        if (donation.length === 0) {
-            return next(createError(404, "Donation not found"));
-        }
         res.status(200).json({
             error: false,
             success: true,
-            count: donation.length,
+            count: donation ? donation.length : 0,
             data: donation
         });
     } catch (error: any) {

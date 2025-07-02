@@ -71,10 +71,7 @@ export const getAllBiodatas = async (req: Request, res: Response, next: NextFunc
 export const getBiodataById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const biodata = await Biodata.findById(req.params.id);
-        if (!biodata) {
-            res.status(404).json({ success: false, message: "Biodata not found" });
-            return;
-        }
+
         res.status(200).json({ success: true, data: biodata });
     } catch (error) {
         next(error);
@@ -84,10 +81,7 @@ export const getBiodataById = async (req: Request, res: Response, next: NextFunc
 export const getBiodataByUserId = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const biodata = await Biodata.find({ profileCreatedById: req.payload?.appUserId });
-        if (!biodata) {
-            res.status(404).json({ success: false, message: "Biodata not found" });
-            return;
-        }
+        
         res.status(200).json({ success: true, data: biodata });
     } catch (error) {
         next(error);
