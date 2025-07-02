@@ -337,9 +337,7 @@ export const getMissionById = async (req: Request, res: Response, next: NextFunc
 export const getLatestMission = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
         const mission = await Mission.find({}).sort({ createdAt: -1 }).limit(5);
-        if (!mission) {
-            throw createError(404, "Mission not found");
-        }
+        
         res.status(200).json(mission);
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));

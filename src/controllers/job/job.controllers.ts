@@ -203,7 +203,6 @@ export const getAllJobWithUser = async (req: RequestType, res: Response, next: N
 export const getJobById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const job = await Job.findById(req.params.id);
-        if (!job) throw createError(400, "Job not found");
 
         res.status(200).json(job);
     } catch (error: any) {
