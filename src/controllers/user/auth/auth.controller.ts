@@ -108,10 +108,10 @@ export const sendOtp = async (req: Request, res: Response, next: NextFunction): 
  */
 export const registerUser = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { name, gender, dob, address, city, language, email, mobile }: RegisterUserRequest = req.body;
+    const { name, gender, dob, address, city, state, country, language, email, mobile }: RegisterUserRequest = req.body;
 
     // Validate request body
-    const { error } = registerSchema.validate({ name, gender, dob, address, city, language, email, mobile });
+    const { error } = registerSchema.validate({ name, gender, dob, address, city, state, country, language, email, mobile });
 
     if (error) {
       console.log(error?.details[0].message);
@@ -129,9 +129,11 @@ export const registerUser = async (req: RequestType, res: Response, next: NextFu
       gender: gender,
       dob: dob,
       city: city,
+      state: state,
+      country: country,
       address: address,
       Language: language,
-      image: `https://ui-avatars.com/api/?uppercase=true&background=random&color=random&size=128`,
+      image: `/assets/profile/images-1751822555415-776740214.png`,
     };
 
     // Create a new user
