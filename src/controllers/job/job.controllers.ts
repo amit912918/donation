@@ -46,16 +46,6 @@ export const updateJob = async (req: RequestType, res: Response, next: NextFunct
         const jobId = req.params.id;
         const updatedField = req.body;
 
-        // const updatedJob = await Job.findByIdAndUpdate(
-        //     jobId,
-        //     {
-        //         ...req.body,
-        //         jobUpdatedBy: new mongoose.Types.ObjectId(req?.payload?.appUserId),
-        //         updatedAt: new Date()
-        //     },
-        //     { new: true, runValidators: true }
-        // );
-
         const updatedJob = await Job.findByIdAndUpdate(
             new mongoose.Types.ObjectId(jobId),
             { $set: updatedField },
@@ -313,7 +303,7 @@ export const createOrUpdateJobInteraction = async (req: RequestType, res: Respon
                 { new: true }
             );
             // throw createError(400, `User already ${interactionType.toLowerCase()} for this job.`);
-            res.status(200).json({ message: "Interaction updated successfully" });
+            res.status(200).json({ message: `${interactionType} successfully` });
             return;
         }
 
@@ -331,7 +321,7 @@ export const createOrUpdateJobInteraction = async (req: RequestType, res: Respon
         });
         await newInteraction.save();
 
-        res.status(200).json({ message: "Interaction recorded successfully", interaction: newInteraction });
+        res.status(200).json({ message: `${interactionType} successfully`, interaction: newInteraction });
     } catch (error: any) {
         if (error.code === 11000) {
             next(createError(400, "Duplicate interaction not allowed."));
@@ -535,7 +525,7 @@ export const jobReport = async (req: RequestType, res: Response, next: NextFunct
 
         res.status(200).json({
             error: false,
-            message: "Report on job created successfully"
+            message: "Reported successfully"
         });
     } catch (error: any) {
         next(createError(error.status || 500, error.message || "Internal Server Error"));

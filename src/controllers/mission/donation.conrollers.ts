@@ -115,12 +115,11 @@ export const getTopDonor = async (req: Request, res: Response, next: NextFunctio
 export const getDonateById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         console.log(req.params.id, "req.params.id");
-        // const donation = await Donation.findById(req.params.id);
         const donation = await Donation.aggregate([
             { $match: { _id: new mongoose.Types.ObjectId(req.params.id) } },
             {
                 $lookup: {
-                    from: 'users',                 // collection name
+                    from: 'users',
                     localField: 'user',
                     foreignField: '_id',
                     as: 'userDetails'

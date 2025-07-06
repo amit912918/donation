@@ -5,6 +5,8 @@ export interface RegisterUserRequest {
     dob: string;
     address: string;
     city: string;
+    state: string;
+    country: string;
     language: string;
     email?: string;
     mobile?: string;

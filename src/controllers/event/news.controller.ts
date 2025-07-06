@@ -8,7 +8,6 @@ import mongoose from 'mongoose';
 export const createNews = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
         const { title, content, fileName, fileType, author = "admin", category, isPublished } = req.body;
-        console.log(fileType, "fileType");
 
         if(fileType !== 'image' && fileType !== 'video') {
             return next(createError(400, 'Please check fileType, it should be image or video'));
