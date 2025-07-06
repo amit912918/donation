@@ -28,7 +28,7 @@ export const donateToMission = async (req: RequestType, res: Response, next: Nex
 };
 
 // 📌 Get top donon of the week
-export const getTopDonor = async (req: Request, res: Response, next: NextFunction) => {
+export const getTopDonor = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { time } = req.body; // expects { "time": "weekly" } or { "time": "monthly" }
         const now = new Date();
@@ -73,6 +73,7 @@ export const getTopDonor = async (req: Request, res: Response, next: NextFunctio
                 message: `No donations found for the selected ${time || 'weekly'} period`,
                 data: []
             });
+            return;
             // throw createError(404, `No donations found for the selected ${time || 'weekly'} period.`);
         }
 
