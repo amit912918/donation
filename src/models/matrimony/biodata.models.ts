@@ -1,5 +1,19 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IJob extends Document {
+    businessType: string,
+    businessSector: string,
+    positionInBusiness: string,
+    yearlyIncome: string
+}
+
+const JobSchema: Schema = new Schema({
+    businessType: { type: String },
+    businessSector: { type: String },
+    positionInBusiness: { type: String },
+    yearlyIncome: { type: String }
+}, { timestamps: true });
+
 export interface ICandidate extends Document {
     name: string;
     nickName?: string;
@@ -12,6 +26,7 @@ export interface ICandidate extends Document {
     qualification: string;
     college: string;
     occupation: string;
+    jobDetail: IJob,
     language?: string;
     serviceTypes: string[];
     maritalStatus: string;
@@ -21,13 +36,6 @@ export interface ICandidate extends Document {
     food: string;
     photos?: string[];
 }
-
-const JobSchema: Schema = new Schema({
-    businessType: { type: String },
-    businessSector: { type: String },
-    positionInBusiness: { type: String },
-    yearlyIncome: { type: String }
-}, { timestamps: true });
 
 const CandidateSchema: Schema = new Schema({
     name: { type: String, required: true },
@@ -88,6 +96,7 @@ export interface IBiodata extends Document {
         // elderBrotherOccupation: string;
         additionalInfo?: string;
     };
+    isVerified?: boolean,
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -129,9 +138,102 @@ const BiodataSchema: Schema = new Schema<IBiodata>({
         // elderBrotherName: { type: String },
         // elderBrotherOccupation: { type: String },
         additionalInfo: { type: String },
-    }
+    },
+    isVerified: { type: Boolean, default: false }
 }, { timestamps: true });
+
+BiodataSchema.pre<IBiodata>('save', function (next) {
+    const biodata = this; // ✅ Now 'this' is correctly typed as IBiodata
+
+    let allFieldsFilled = true;
+
+    const checkFields = [
+        biodata.profileCreatedById,
+        biodata.profileCreatedBy,
+        biodata.relationWithCandiate,
+        biodata.profileCount,
+        biodata.gender,
+        biodata.contact,
+        biodata.state,
+        biodata.city,
+        biodata.BicholiyaId,
+    ];
+
+    const gotra = biodata.gotraDetails || {};
+    checkFields.push(gotra.selfGotra, gotra.maaGotra, gotra.dadiGotra);
+
+    const family = biodata.familyDetails || {};
+    checkFields.push(
+        family.fatherName,
+        family.fatherOccupation,
+        family.motherName,
+        family.motherOccupation,
+        family.grandfatherName,
+        family.grandfatherOccupation,
+        family.familyLivingIn
+    );
+
+    // Candidate check
+    if (biodata.candidate.length > 0) {
+        const candidate = biodata.candidate[0];
+        const job = candidate.jobDetail || {};
+
+        const candidateFields = [
+            candidate.name,
+            candidate.dob,
+            candidate.address,
+            candidate.city,
+            candidate.mobile,
+            candidate.qualification,
+            candidate.college,
+            candidate.occupation,
+            candidate.maritalStatus,
+            candidate.assetInfo,
+            candidate.drink,
+            candidate.smoke,
+            candidate.food,
+            ...(candidate.serviceTypes || []),
+        ];
+
+        const jobFields = [
+            job.businessType,
+            job.businessSector,
+            job.positionInBusiness,
+            job.yearlyIncome,
+        ];
+
+        checkFields.push(...candidateFields, ...jobFields);
+    } else {
+        allFieldsFilled = false;
+    }
+
+    // Sibling check
+    if (!family.siblings || family.siblings.length === 0) {
+        allFieldsFilled = false;
+    } else {
+        for (let sibling of family.siblings) {
+            if (
+                !sibling.name ||
+                !sibling.occupation ||
+                !sibling.maritalStatus ||
+                !sibling.siblingRelation
+            ) {
+                allFieldsFilled = false;
+                break;
+            }
+        }
+    }
+
+    if (checkFields.some((f) => f === undefined || f === null || f === '')) {
+        allFieldsFilled = false;
+    }
+
+    biodata.isVerified = allFieldsFilled;
+    console.log(allFieldsFilled, "allFieldsFilled");
+    next();
+});
 
 // ✅ Correct Export
 const Biodata = mongoose.model<IBiodata>("Biodata", BiodataSchema);
 export default Biodata;
+

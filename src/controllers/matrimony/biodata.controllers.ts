@@ -8,21 +8,25 @@ import mongoose from "mongoose";
 
 export const createBiodata = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
-        const existingBiodata = await Biodata.findOne({ profileCreatedById: req.payload?.appUserId });
+        const appUserId = req.payload?.appUserId;
 
-        if (existingBiodata) {
-            const updatedBiodata = await Biodata.findByIdAndUpdate(
-                existingBiodata._id,
-                { ...req.body },
-                { new: true }
-            );
-            res.status(200).json({ success: true, message: "Biodata updated", data: updatedBiodata });
+        let biodata = await Biodata.findOne({ profileCreatedById: appUserId });
+
+        if (biodata) {
+            // ✅ Update fields manually
+            Object.assign(biodata, req.body);
+            await biodata.save(); // ✅ pre('save') runs here
+
+            res.status(200).json({ success: true, message: "Biodata updated", data: biodata });
             return;
         } else {
-            const newBiodata = await Biodata.create({
+            // ✅ New biodata
+            const newBiodata = new Biodata({
                 ...req.body,
-                profileCreatedById: req.payload?.appUserId,
+                profileCreatedById: appUserId,
             });
+            await newBiodata.save(); // ✅ pre('save') runs here
+
             res.status(200).json({ success: true, message: "Biodata created", data: newBiodata });
             return;
         }
@@ -30,6 +34,7 @@ export const createBiodata = async (req: RequestType, res: Response, next: NextF
         next(error);
     }
 };
+
 
 export const getAllBiodatas = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -81,7 +86,7 @@ export const getBiodataById = async (req: Request, res: Response, next: NextFunc
 export const getBiodataByUserId = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const biodata = await Biodata.find({ profileCreatedById: req.payload?.appUserId });
-        
+
         res.status(200).json({ success: true, data: biodata });
     } catch (error) {
         next(error);
@@ -145,52 +150,52 @@ export const getNewlyJoined = async (req: RequestType, res: Response, next: Next
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
-        
-                const newlyJoinedData = await Biodata.aggregate([
-        {
-            $match: {
-            profileCreatedById: { $ne: req?.payload?.appUserId }
-            },
-        },
-        {
-            $lookup: {
-            from: 'biodatainteractions',
-            let: { biodataId: '$_id' },
-            pipeline: [
-                {
+
+        const newlyJoinedData = await Biodata.aggregate([
+            {
                 $match: {
-                    $expr: {
-                    $and: [
-                        { $eq: ['$biodataId', '$$biodataId'] },
-                        { $eq: ['$isCheckout', true] },
-                        { $eq: ['$userId', new mongoose.Types.ObjectId(req?.payload?.appUserId)] }
-                    ]
-                    }
+                    profileCreatedById: { $ne: req?.payload?.appUserId }
+                },
+            },
+            {
+                $lookup: {
+                    from: 'biodatainteractions',
+                    let: { biodataId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$biodataId', '$$biodataId'] },
+                                        { $eq: ['$isCheckout', true] },
+                                        { $eq: ['$userId', new mongoose.Types.ObjectId(req?.payload?.appUserId)] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as: 'userInteractions'
                 }
+            },
+            {
+                $match: {
+                    'userInteractions': { $eq: [] } // Only allow biodatas where the user has NOT checked out
                 }
-            ],
-            as: 'userInteractions'
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $skip: skip
+            },
+            {
+                $limit: limit
+            },
+            {
+                $project: {
+                    userInteractions: 0
+                }
             }
-        },
-        {
-            $match: {
-            'userInteractions': { $eq: [] } // Only allow biodatas where the user has NOT checked out
-            }
-        },
-        {
-            $sort: { createdAt: -1 }
-        },
-        {
-            $skip: skip
-        },
-        {
-            $limit: limit
-        },
-        {
-            $project: {
-            userInteractions: 0
-            }
-        }
         ]);
 
 
@@ -217,12 +222,12 @@ export const recommendationBiodata = async (req: RequestType, res: Response, nex
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
-        
-        const userBioData = await Biodata.findOne({profileCreatedById: appUserId}).select('gotraDetails');
+
+        const userBioData = await Biodata.findOne({ profileCreatedById: appUserId }).select('gotraDetails');
 
         const allTopMatchData = await Biodata.aggregate([
             {
-                $match: { profileCreatedById: { $ne: req?.payload?.appUserId }, gotraDetails: userBioData?.gotraDetails}
+                $match: { profileCreatedById: { $ne: req?.payload?.appUserId }, gotraDetails: userBioData?.gotraDetails }
             },
             {
                 $lookup: {
@@ -233,8 +238,8 @@ export const recommendationBiodata = async (req: RequestType, res: Response, nex
                 }
             },
         ])
-        .skip(skip)
-        .limit(limit);
+            .skip(skip)
+            .limit(limit);
 
         res.status(200).json({
             success: true,
@@ -256,12 +261,12 @@ export const getAllBioDataMatch = async (req: RequestType, res: Response, next: 
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
-        
-        const userBioData = await Biodata.findOne({profileCreatedById: appUserId}).select('gotraDetails');
 
-        const recommendationData = await Biodata.find({ profileCreatedById: { $ne: req?.payload?.appUserId }, gotraDetails: userBioData?.gotraDetails})
-        .skip(skip)
-        .limit(limit);
+        const userBioData = await Biodata.findOne({ profileCreatedById: appUserId }).select('gotraDetails');
+
+        const recommendationData = await Biodata.find({ profileCreatedById: { $ne: req?.payload?.appUserId }, gotraDetails: userBioData?.gotraDetails })
+            .skip(skip)
+            .limit(limit);
 
         res.status(200).json({
             success: true,
@@ -283,11 +288,11 @@ export const getSendRequest = async (req: RequestType, res: Response, next: Next
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
-        
+
         const requestGetData = await BiodataInteraction.find({ userId: appUserId, isRequestSend: true, isAccpted: false })
-        .populate("biodataId", "candidate createdAt")
-        .skip(skip)
-        .limit(limit);
+            .populate("biodataId", "candidate createdAt")
+            .skip(skip)
+            .limit(limit);
 
         res.status(200).json({
             success: true,
@@ -309,11 +314,11 @@ export const getReceiveRequest = async (req: RequestType, res: Response, next: N
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
-        
+
         const requestGetData = await BiodataInteraction.find({ biodataCreatedBy: appUserId, isRequestSend: true, isAccpted: false })
-        .populate("biodataId", "candidate createdAt")
-        .skip(skip)
-        .limit(limit);
+            .populate("biodataId", "candidate createdAt")
+            .skip(skip)
+            .limit(limit);
 
         res.status(200).json({
             success: true,
@@ -335,11 +340,11 @@ export const getFavouristList = async (req: RequestType, res: Response, next: Ne
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
-        
+
         const requestGetData = await BiodataInteraction.find({ userId: appUserId, addingToFavourite: true })
-        .populate("biodataId", "candidate createdAt")
-        .skip(skip)
-        .limit(limit);
+            .populate("biodataId", "candidate createdAt")
+            .skip(skip)
+            .limit(limit);
 
         res.status(200).json({
             success: true,
@@ -411,7 +416,7 @@ export const getAllBiodataInteraction = async (req: RequestType, res: Response, 
     try {
         let interactionTypes: any = req?.query?.interactionTypes;
 
-        const filter: any = { };
+        const filter: any = {};
 
         if (interactionTypes && interactionTypes?.length > 0) {
             filter.interactionType = { $in: JSON.parse(interactionTypes) };
@@ -451,8 +456,7 @@ export const biodataInteraction = async (req: RequestType, res: Response, next: 
         if (!user) throw createError(404, "User not found");
 
         const updateData: any = {};
-        if (interactionType === "checkout") 
-        {
+        if (interactionType === "checkout") {
             updateData.isCheckout = true;
             updateData.isCheckoutTime = new Date();
         }
@@ -515,11 +519,10 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
         if (!user) throw createError(404, "User not found");
 
         const updateData: any = {};
-        if (type === "send") 
-            {
-                updateData.isRequestSend = true;
-                updateData.requestSendTime = new Date();
-            }
+        if (type === "send") {
+            updateData.isRequestSend = true;
+            updateData.requestSendTime = new Date();
+        }
         if (type === "accept") {
             updateData.isAccpted = true;
             updateData.isRejected = false;
@@ -593,8 +596,8 @@ export const biodataCancelFavourite_Remove = async (req: RequestType, res: Respo
             updateData.requestSendTime = "";
         }
         if (type === "remove_from_favourite") {
-                updateData.addingToFavourite = false;
-                updateData.addingToFavouriteTime = "";
+            updateData.addingToFavourite = false;
+            updateData.addingToFavouriteTime = "";
         }
 
         updateData.message = message || "";
@@ -602,13 +605,13 @@ export const biodataCancelFavourite_Remove = async (req: RequestType, res: Respo
         const existingInteraction = await BiodataInteraction.findOne({ biodataId, userId });
 
         if (!existingInteraction) {
-              throw createError(404, "Interaction not exist");
+            throw createError(404, "Interaction not exist");
         }
 
         const updated = await BiodataInteraction.findOneAndUpdate(
-                { biodataId, userId },
-                { $set: updateData },
-                { new: true }
+            { biodataId, userId },
+            { $set: updateData },
+            { new: true }
         );
 
         res.status(200).json({ message: "Interaction updated successfully", interaction: updated });
@@ -621,7 +624,7 @@ export const biodataCancelFavourite_Remove = async (req: RequestType, res: Respo
 
 export const checkBiodataCompleted = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
-       
+
         const biodata = await Biodata.findOne({ profileCreatedById: req?.payload?.appUserId });
 
         const isComplete = isBiodataComplete(biodata);
@@ -629,7 +632,7 @@ export const checkBiodataCompleted = async (req: RequestType, res: Response, nex
         res.status(200).json({
             error: false,
             success: true,
-            message: "Interaction updated successfully", 
+            message: "Interaction updated successfully",
             isComplete
         });
     } catch (error: unknown) {
