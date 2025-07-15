@@ -35,7 +35,6 @@ export const createBiodata = async (req: RequestType, res: Response, next: NextF
     }
 };
 
-
 export const getAllBiodatas = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const page = parseInt(req.query.page as string) || 1;
