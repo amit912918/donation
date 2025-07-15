@@ -179,11 +179,15 @@ export const updateUserProfile = async (req: RequestType, res: Response, next: N
       return next(createError(400, error.details[0].message));
     }
 
+    const existingUser: any = await User.findById(userId);
+    if (!existingUser) {
+      return next(createError(404, "User not found"));
+    }
+
     const updateData: any = {};
 
     if (name) updateData.name = name;
 
-    // Only include profile subfields if any are provided
     const profileUpdates: any = {};
     if (gender) profileUpdates.gender = gender;
     if (dob) profileUpdates.dob = dob;
@@ -192,6 +196,7 @@ export const updateUserProfile = async (req: RequestType, res: Response, next: N
     if (state) profileUpdates.state = state;
     if (country) profileUpdates.country = country;
     if (Language) profileUpdates.Language = Language;
+    profileUpdates.image = existingUser?.profile?.image;
 
     if (Object.keys(profileUpdates).length > 0) {
       updateData.profile = profileUpdates;
@@ -220,27 +225,24 @@ export const updateUserProfileImage = async (req: RequestType, res: Response, ne
 
     const { image } = req.body;
 
-
     if (!image) {
       return next(createError(400, "Check all field"));
     }
 
-    const updateData: any = {};
-
-    // Only include profile subfields if any are provided
-    const profileUpdates: any = {};
-    if (image) profileUpdates.image = image;
-
-    if (Object.keys(profileUpdates).length > 0) {
-      updateData.profile = profileUpdates;
-    }
-
-    const updatedProfile = await User.findByIdAndUpdate(userId, updateData, { new: true });
-
-    if (!updatedProfile) {
+    const existingUser: any = await User.findById(userId);
+    if (!existingUser) {
       return next(createError(404, "User not found"));
     }
 
+    const updatedProfile = await User.findByIdAndUpdate(
+      userId,
+      { $set: { "profile.image": image } },
+      { new: true }
+    );
+
+    if (!updatedProfile) {
+      return next(createError(404, "Failed to update user."));
+    }
 
     res.status(200).json({
       message: "Profile image updated successfully.",
