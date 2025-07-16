@@ -2,27 +2,30 @@ import { NextFunction, Request, Response } from "express";
 import { createError } from "@/helpers/common/backend.functions";
 
 // 📌 Upload mission image
-export const uploadImages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        if (!req.files || !Array.isArray(req.files)) {
-            return next(createError(404, "No files uploaded."));
-        }
-
-        // Files uploaded successfully
-        const uploadedFiles = (req.files as Express.Multer.File[]).map((file) => ({
-            originalName: file.originalname,
-            filename: `/assets/${req.body.type}/${file.filename}`,
-            path: file.path,
-        }));
-
-        res.status(200).json({
-            message: "Files uploaded successfully.",
-            files: uploadedFiles,
-        });
-    } catch (error: any) {
-        console.log("Add Images Error ::>>", error);
-        next(createError(error.status || 500, error.message || "Internal Server Error"));
+export const uploadImages = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.files || !Array.isArray(req.files)) {
+      return next(createError(400, 'No files uploaded.'));
     }
+
+    const uploadedFiles = (req.files as Express.MulterS3.File[]).map((file) => ({
+      originalName: file.originalname,
+      location: file.location, // ✅ full S3 URL
+      key: file.key,
+    }));
+
+    res.status(200).json({
+      message: 'Files uploaded to S3 successfully.',
+      files: uploadedFiles,
+    });
+  } catch (error: any) {
+    console.error('Upload Error:', error);
+    next(createError(error.status || 500, error.message || 'Internal Server Error'));
+  }
 };
 
 // 📌 Upload mission video
