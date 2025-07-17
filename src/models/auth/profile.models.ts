@@ -9,7 +9,7 @@ export interface IProfile extends Document {
     country?: string | null;
     phone?: string | null;
     bio?: string | null;
-    gender: 'Male' | 'Female' | 'Others';
+    gender: 'Male' | 'Female' | 'Other';
     occupation?: string | null;
     dob?: Date | null;
     PAN?: string | null;
@@ -22,14 +22,14 @@ const profileSchema = new Schema<IProfile>(
         image: { type: String },
         address: { type: String },
         city: { type: String, default: '' },
-        state: { type: String, default: null },
-        country: { type: String, default: null },
+        state: { type: String, default: "" },
+        country: { type: String, default: "" },
         phone: { type: String },
         bio: { type: String },
         gender: {
             type: String,
-            enum: ['Male', 'Female', 'Others'],
-            default: 'Others',
+            enum: ['Male', 'Female', 'Other'],
+            default: 'Other',
         },
         occupation: { type: String, default: '' },
         dob: { type: String, required: true },
