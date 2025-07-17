@@ -8,6 +8,7 @@ import Otp from "@/models/auth/otp.models";
 import { sendSms } from "@/helpers/service/communication/sms";
 import { sendEmail } from "@/helpers/service/communication/email";
 import { RequestType } from "@/helpers/shared/shared.type";
+import { Country, State, City } from 'country-state-city';
 
 /**
  * @desc User Login
@@ -347,6 +348,53 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
     res.status(200).json({ message: 'OTP verified successfully' });
   } catch (error: any) {
     console.error("Error in verify otp", error);
+    next(createError(500, error?.message || "Internal server error"));
+  }
+};
+
+export const getAllCountries = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    
+    const countries = Country.getAllCountries();
+    res.status(200).json({
+      error: false,
+      success: true,
+      countries
+    });   
+  } catch (error: any) {
+    console.error("Error in get all country", error);
+    next(createError(500, error?.message || "Internal server error"));
+  }
+};
+
+export const getAllState = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+
+    const { countryCode } = req.params;
+    const states = State.getStatesOfCountry(countryCode);
+    res.status(200).json({
+      error: false,
+      success: true,
+      states
+    });   
+  } catch (error: any) {
+    console.error("Error in get all country", error);
+    next(createError(500, error?.message || "Internal server error"));
+  }
+};
+
+export const getAllCity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+   
+    const { countryCode, stateCode } = req.params;
+    const cities = City.getCitiesOfState(countryCode, stateCode);
+    res.status(200).json({
+      error: false,
+      success: true,
+      cities
+    });
+  } catch (error: any) {
+    console.error("Error in get all country", error);
     next(createError(500, error?.message || "Internal server error"));
   }
 };

@@ -39,6 +39,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
+    "country-state-city": "^3.2.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "fs": "^0.0.1-security",
