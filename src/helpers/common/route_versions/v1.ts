@@ -16,6 +16,7 @@ import appMatrimonyRouterV1 from "@/routes/matrimony/biodata.routes";
 import appEventRouterV1 from "@/routes/event/news.routes";
 import appAdminRouterV1 from "@/routes/admin/admin.routes";
 import appS3FilesRouterV1 from "@/routes/files_s3/files.routes";
+import appBicholiyaRouterV1 from "@/routes/matrimony/bicholiya.matrimony.routes";
 
 const v1 = Router();
 
@@ -29,6 +30,7 @@ v1.use('/matrimony', appMatrimonyRouterV1);
 v1.use('/file', appFilesRouterV1);
 v1.use('/file-s3', appS3FilesRouterV1);
 v1.use('/event', appEventRouterV1);
+v1.use('/bicholiya', appBicholiyaRouterV1);
 
 // Admin Endpoints Api's
 v1.use('/gender', appGenderRouterV1);

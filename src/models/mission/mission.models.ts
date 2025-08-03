@@ -38,7 +38,7 @@ const MissionSchema: Schema = new Schema(
         bankDetails: BankDetailsSchema,
         missionCreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         isPublished: { type: Boolean, default: false },
-        isActive: { type: Boolean, default: false },
+        isActive: { type: Boolean, default: true },
         documents: [
             {
                 type: { type: String, required: true },
@@ -47,7 +47,7 @@ const MissionSchema: Schema = new Schema(
             }
         ]
     },
-    { timestamps: true } // Automatically adds createdAt and updatedAt
+    { timestamps: true }
 );
 
 MissionSchema.pre<IMission>('validate', async function (next) {

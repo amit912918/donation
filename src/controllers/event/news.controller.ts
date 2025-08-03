@@ -1,5 +1,6 @@
 import { createError } from '@/helpers/common/backend.functions';
 import { RequestType } from '@/helpers/shared/shared.type';
+import User from '@/models/auth/auth.models';
 import News from '@/models/event/news.model';
 import { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
@@ -89,6 +90,26 @@ export const getNewsByUser = async (req: RequestType, res: Response, next: NextF
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
+
+export const getMentorAnalyticsData = async (req: RequestType, res: Response, next: NextFunction) => {
+    try {
+        const mentor_count = await User.countDocuments({ isMentor: true});
+
+        const count_post = await News.countDocuments({});
+
+        res.status(200).json({
+            success: true,
+            error: false,
+            message: "Mentor analytics data retrieve successfully",
+            mentor_count,
+            count_post
+        });
+    } catch (error: any) {
+        console.log("Error in mentor analytics data", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
 
 // Get a single news by ID
 export const getNewsById = async (req: Request, res: Response, next: NextFunction) => {

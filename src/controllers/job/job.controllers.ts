@@ -372,7 +372,15 @@ export const getUserInteractions = async (req: Request, res: Response, next: Nex
 // 📌 Get all job
 export const getJobForUser = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const { page = 1, limit = 10, jobType, jobLocation, experience, jobCity } = req.query;
+        const { 
+            page = 1, 
+            limit = 10, 
+            jobType, 
+            jobLocation, 
+            experience, 
+            jobCity,
+            sortBy = 'latest',
+        } = req.query;
 
         const filter: any = {};
         if (jobType) filter.jobType = jobType;
@@ -397,17 +405,21 @@ export const getJobForUser = async (req: RequestType, res: Response, next: NextF
             _id: { $nin: reportedJobs } // exclude reported jobs
         };
 
+        // Sort mapping
+        const sortOptions: any = {
+            latest: { createdAt: -1 },
+            oldest: { createdAt: 1 }
+        };
+
         // 3. Fetch jobs
         const jobs = await Job.find(filterWithExclusion)
             .skip(skip)
             .limit(Number(limit))
-            .sort({ createdAt: -1 })
+            .sort({ createdAt: sortBy === 'latest' ? -1 : 1 })
             .populate({
                 path: 'jobCreatedBy',
                 select: 'name email mobile profile.image'
             });
-
-        // .select('jobTitle jobDescription jobType jobCity minimumQualification jobLocation createdAt');
 
         // Add interactions to jobs
         const updatedJobs = (

@@ -8,6 +8,7 @@ import { IMissionData } from "@/helpers/interface/mission/mission.interface";
 import mongoose from "mongoose";
 import { RequestType } from "@/helpers/shared/shared.type";
 import Donation from "@/models/mission/donate.models";
+import { error } from "console";
 
 // 📌 Create a new mission with transaction
 export const createMission = async (req: RequestType, res: Response, next: NextFunction) => {
@@ -386,6 +387,39 @@ export const getMissionCreatedByUser = async (req: RequestType, res: Response, n
         });
     } catch (error: any) {
         console.log("Error in mission created by user", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 Get mission analytics data
+export const getMissionAnalyticsData = async (req: RequestType, res: Response, next: NextFunction) => {
+    try {
+        const active_mission_count = await Mission.countDocuments({ isActive: true});
+
+        const distinctUser = await Donation.distinct("user");
+        const total_donars = distinctUser.length;
+
+        const result = await Donation.aggregate([
+        {
+            $group: {
+            _id: null,
+            totalDonated: { $sum: "$amount" }
+            }
+        }
+        ]);
+
+        const amount_raised = result[0]?.totalDonated || 0;
+
+        res.status(200).json({
+            success: true,
+            error: false,
+            message: "Mission analytics data retrieve successfully",
+            active_mission_count,
+            total_donars,
+            amount_raised
+        });
+    } catch (error: any) {
+        console.log("Error in mission analytics data", error);
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
