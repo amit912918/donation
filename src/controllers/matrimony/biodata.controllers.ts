@@ -6,6 +6,15 @@ import Biodata from "@/models/matrimony/biodata.models";
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 
+const isProfileCompleted = async(appUserId: string) => {
+    try {
+        let biodata = await Biodata.findOne({ profileCreatedById: appUserId });
+        console.log(biodata, "biodata")
+    } catch (error) {
+        console.log(error, 'error');
+    }
+}
+
 export const createBiodata = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
         const appUserId = req.payload?.appUserId;
@@ -151,66 +160,114 @@ export const getNewlyJoined = async (req: RequestType, res: Response, next: Next
         const skip = (page - 1) * limit;
 
         const newlyJoinedData = await Biodata.aggregate([
-            {
-                $match: {
-                    profileCreatedById: { $ne: req?.payload?.appUserId }
-                },
-            },
-            {
-                $lookup: {
-                    from: 'biodatainteractions',
-                    let: { biodataId: '$_id' },
-                    pipeline: [
-                        {
-                            $match: {
-                                $expr: {
-                                    $and: [
-                                        { $eq: ['$biodataId', '$$biodataId'] },
-                                        { $eq: ['$isCheckout', true] },
-                                        { $eq: ['$userId', new mongoose.Types.ObjectId(req?.payload?.appUserId)] }
-                                    ]
-                                }
-                            }
-                        }
-                    ],
-                    as: 'userInteractions'
-                }
-            },
-            {
-                $match: {
-                    'userInteractions': { $eq: [] } // Only allow biodatas where the user has NOT checked out
-                }
-            },
-            {
-                $sort: { createdAt: -1 }
-            },
-            {
-                $skip: skip
-            },
-            {
-                $limit: limit
-            },
-            {
-                $project: {
-                    userInteractions: 0
-                }
+        {
+            $match: {
+            profileCreatedById: { $ne: req?.payload?.appUserId }
             }
+        },
+        {
+            $lookup: {
+            from: 'biodatainteractions',
+            let: { biodataId: '$_id' },
+            pipeline: [
+                {
+                $match: {
+                    $expr: {
+                    $and: [
+                        { $eq: ['$biodataId', '$$biodataId'] },
+                        { $eq: ['$userId', new mongoose.Types.ObjectId(req?.payload?.appUserId)] }
+                    ]
+                    }
+                }
+                }
+            ],
+            as: 'userInteractions'
+            }
+        },
+        {
+            $match: {
+            userInteractions: { $eq: [] } // Filter out biodatas where interactions already exist
+            }
+        },
+        {
+            $sort: { createdAt: -1 }
+        },
+        {
+            $skip: skip
+        },
+        {
+            $limit: limit
+        },
+        {
+            $project: {
+            userInteractions: 0 // Optionally remove interaction field
+            }
+        }
         ]);
 
-
-
-        const totalJoinedCount = await Biodata.countDocuments({});
+        const newlyJoinedCount = await Biodata.aggregate([
+        {
+            $match: {
+            profileCreatedById: { $ne: req?.payload?.appUserId }
+            }
+        },
+        {
+            $lookup: {
+            from: 'biodatainteractions',
+            let: { biodataId: '$_id' },
+            pipeline: [
+                {
+                $match: {
+                    $expr: {
+                    $and: [
+                        { $eq: ['$biodataId', '$$biodataId'] },
+                        { $eq: ['$userId', new mongoose.Types.ObjectId(req?.payload?.appUserId)] }
+                    ]
+                    }
+                }
+                }
+            ],
+            as: 'userInteractions'
+            }
+        },
+        {
+            $match: {
+            userInteractions: { $eq: [] }
+            }
+        },
+        {
+            $count: "total"
+        }
+        ]);
 
         res.status(200).json({
             success: true,
             error: false,
-            count: totalJoinedCount,
+            count: newlyJoinedCount[0].total,
             data: newlyJoinedData
         });
     } catch (error: unknown) {
         console.error("Error in get newly joined user", error);
         const err = error instanceof Error ? error.message : "Internal server error";
         next(createError(500, err));
+    }
+};
+
+export const getBicholiyaAnalyticsData = async (req: RequestType, res: Response, next: NextFunction) => {
+    try {
+        const bicholiya_count = await User.countDocuments({ isBicholiya: true});
+
+        res.status(200).json({
+            success: true,
+            error: false,
+            message: "Bicholiya analytics data retrieve successfully",
+            bicholiya_count,
+            profiles: 500,
+            success_story: 150
+        });
+    } catch (error: any) {
+        console.log("Error in bicholiya analytics data", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 

@@ -1,0 +1,142 @@
+import { createError } from "@/helpers/common/backend.functions";
+import { RequestType } from "@/helpers/shared/shared.type";
+import User from "@/models/auth/auth.models";
+import BiodataInteraction from "@/models/matrimony/biodata.interaction.models";
+import Biodata from "@/models/matrimony/biodata.models";
+import { Request, Response, NextFunction } from "express";
+
+export const getBicholiyaList = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const search = (req.query.search as string) || "";
+
+        const searchQuery = {
+            isBicholiya: true,
+            ...(search && {
+                name: { $regex: search, $options: "i" }
+            })
+        };
+
+        const bicholiyaDatas = await User.find(searchQuery).sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            error: false,
+            count: bicholiyaDatas.length,
+            data: bicholiyaDatas
+        });
+    } catch (error: unknown) {
+        console.error("Error in get bicholiya list", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
+    }
+};
+
+export const getBicholiyaAnalyticsData = async (req: RequestType, res: Response, next: NextFunction) => {
+    try {
+        const bicholiya_count = await User.countDocuments({ isBicholiya: true});
+
+        res.status(200).json({
+            success: true,
+            error: false,
+            message: "Bicholiya analytics data retrieve successfully",
+            bicholiya_count,
+            profiles: 500,
+            success_story: 150
+        });
+    } catch (error: any) {
+        console.log("Error in bicholiya analytics data", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+export const getAreawiseCandidateForBicholiya = async (req: RequestType, res: Response, next: NextFunction) => {
+  try {
+    const { page = 1, limit = 10, search = '' } = req.query;
+
+    const bicholiya_detail = await User.findOne({ _id: req.payload?.appUserId });
+    const bicholiya_city = bicholiya_detail?.profile?.city;
+
+    if (!bicholiya_city) {
+      return next(createError(400, 'City not found in user profile'));
+    }
+
+    const query: any = {
+      'city': bicholiya_city
+    };
+
+    if (search !== "" && search !== undefined && search !== null) {
+      query['profileCreatedBy'] = { $regex: search, $options: 'i' }; // case-insensitive
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [user_list, total] = await Promise.all([
+      Biodata.find(query).skip(skip).limit(Number(limit)),
+      Biodata.countDocuments(query),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      error: false,
+      message: "Area wise user data retrieved successfully",
+        total,
+        currentPage: Number(page),
+        totalPages: Math.ceil(total / Number(limit)),
+        users: user_list
+    });
+
+  } catch (error: any) {
+    console.log("Error in area wise user data", error);
+    next(createError(error.status || 500, error.message || "Internal Server Error"));
+  }
+};
+
+export const updateBioDataStatus = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req?.payload?.appUserId;
+        const { biodataId, type, message } = req.body;
+
+        if (!biodataId || !userId || !type) {
+            throw createError(400, "Missing required fields");
+        }
+
+        if (!["approved", "rejected", "pending"].includes(type)) {
+            throw createError(400, "Invalid status");
+        }
+
+        const biodata = await Biodata.findById(biodataId);
+        if (!biodata) throw createError(404, "Biodata not found");
+
+        const user = await User.findById(userId);
+        if (!user) throw createError(404, "User not found");
+
+        const updateData: any = {
+            status: type,
+            statusUpdateTime: new Date(),
+            message: message || ""
+        };
+
+        const existingInteraction = await Biodata.findOne({ _id: biodataId });
+
+        if(!existingInteraction) {
+            throw createError(400, "Biodata not found");
+        }
+
+        const updated = await Biodata.findOneAndUpdate(
+            { _id: biodataId },
+            { $set: updateData },
+            { new: true }
+        );
+
+        res.status(200).json({
+            error: false,
+            success: true,
+            message: "status updated successfully",
+            updatedData: updated
+        });
+    } catch (error: unknown) {
+        console.error("Error in biodata update status:", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
+    }
+};

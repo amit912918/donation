@@ -1,4 +1,4 @@
-import { createBanner, deleteBanner, getAllBanners, getContactOption, updateBanner, updateContactOption, updateHomeData, uploadBannerImages } from "@/controllers/home/home.controllers";
+import { createBanner, deleteBanner, getAllBanners, getContactOption, getHomeData, updateBanner, updateContactOption, updateHomeData, uploadBannerImages } from "@/controllers/home/home.controllers";
 import bannerImagesMiddleware from "@/middlewares/files/home/image.home.files";
 import { Router } from "express";
 
@@ -13,6 +13,7 @@ appHomeRouterV1.delete("/delete-banner/:id", deleteBanner);
 // description
 appHomeRouterV1.post("/update-home-data", updateHomeData);
 appHomeRouterV1.get('/get-contact-option', getContactOption);
-appHomeRouterV1.put('/update-contact-option', updateContactOption);
+appHomeRouterV1.get('/get-home-data', getHomeData);
+appHomeRouterV1.put('/update-contact-option', updateContactOption)
 
 export default appHomeRouterV1;

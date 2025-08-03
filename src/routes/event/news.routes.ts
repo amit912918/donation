@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyAccessToken } from "@/middlewares/jwt/jwt.middleware";
-import { commentHandler, createNews, deleteNews, getAllNews, getNewsById, getNewsByUser, getNewsForUser, likeNewsHandler, shareHandler, updateNews } from "@/controllers/event/news.controller";
+import { commentHandler, createNews, deleteNews, getAllNews, getMentorAnalyticsData, getNewsById, getNewsByUser, getNewsForUser, likeNewsHandler, shareHandler, updateNews } from "@/controllers/event/news.controller";
 
 const appEventRouterV1 = Router();
 
@@ -9,6 +9,7 @@ appEventRouterV1.post('/', verifyAccessToken, createNews);
 appEventRouterV1.get('/', verifyAccessToken, getAllNews);
 appEventRouterV1.get('/get-news-for-user', verifyAccessToken, getNewsForUser);
 appEventRouterV1.get('/get-news-by-user', verifyAccessToken, getNewsByUser);
+appEventRouterV1.get('/get-mentor-analytics-data', verifyAccessToken, getMentorAnalyticsData);
 
 // Route for interaction on news
 appEventRouterV1.post('/news/:id/like', verifyAccessToken, likeNewsHandler);

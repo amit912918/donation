@@ -223,3 +223,20 @@ export const updateContactOption = async (req: Request, res: Response, next: Nex
     }
 };
 
+// 📌 update contact option
+export const getHomeData = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+
+        res.status(200).json({ 
+            success: true, 
+            error: false,
+            message: "Home data get successfully",
+            title: "Who we are?",
+            description: ""
+        });
+    } catch (error: any) {
+        console.log("Error in update contact option", error);
+        next(createError(500, error?.message || "Internal server error"));
+    }
+};
+

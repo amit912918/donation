@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyAccessToken } from "@/middlewares/jwt/jwt.middleware";
-import { biodataCancelFavourite_Remove, biodataInteraction, biodataSendAccept, checkBiodataCompleted, createBiodata, deleteBiodata, getAllBiodataInteraction, getAllBioDataMatch, getAllBiodatas, getBicholiyaList, getBiodataById, getBiodataByUserId, getBiodataInteraction, getBiodataInteractionByUser, getFavouristList, getNewlyJoined, getReceiveRequest, getSendRequest, recommendationBiodata, updateBiodata } from "@/controllers/matrimony/biodata.controllers";
+import { biodataCancelFavourite_Remove, biodataInteraction, biodataSendAccept, checkBiodataCompleted, createBiodata, deleteBiodata, getAllBiodataInteraction, getAllBioDataMatch, getAllBiodatas, getBicholiyaAnalyticsData, getBicholiyaList, getBiodataById, getBiodataByUserId, getBiodataInteraction, getBiodataInteractionByUser, getFavouristList, getNewlyJoined, getReceiveRequest, getSendRequest, recommendationBiodata, updateBiodata } from "@/controllers/matrimony/biodata.controllers";
 
 const appMatrimonyRouterV1 = Router();
 
@@ -11,6 +11,7 @@ appMatrimonyRouterV1.get("/recommendation-bidata", verifyAccessToken, recommenda
 appMatrimonyRouterV1.get("/get-all-biodata-match", verifyAccessToken, getAllBioDataMatch);
 appMatrimonyRouterV1.get("/get-bicholiya-list", verifyAccessToken, getBicholiyaList);
 appMatrimonyRouterV1.get("/get-newly-joined", verifyAccessToken, getNewlyJoined);
+appMatrimonyRouterV1.get("/get-bicholiya-analytics-data", verifyAccessToken, getBicholiyaAnalyticsData);
 
 // interaction route
 appMatrimonyRouterV1.post("/biodata-interaction", verifyAccessToken, biodataInteraction);
