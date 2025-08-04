@@ -411,7 +411,6 @@ export const getJobForUser = async (req: RequestType, res: Response, next: NextF
             oldest: { createdAt: 1 }
         };
 
-        // 3. Fetch jobs
         const jobs = await Job.find(filterWithExclusion)
             .skip(skip)
             .limit(Number(limit))
@@ -421,14 +420,22 @@ export const getJobForUser = async (req: RequestType, res: Response, next: NextF
                 select: 'name email mobile profile.image'
             });
 
-        // Add interactions to jobs
         const updatedJobs = (
             await Promise.all(
                 jobs.map(async (job) => {
-                    const interaction = await JobInteraction.findOne({
+                    let interaction: any = {
+                        isApplied: false,
+                        isContacted: false,
+                        isInterested: true
+                    }
+                    let interaction_data = await JobInteraction.findOne({
                         jobId: job._id,
                         userId: new mongoose.Types.ObjectId(userId),
                     }).select('_id isApplied isContacted isInterested');
+                    console.log(interaction_data, "interaction_data");
+                    if(interaction_data) {
+                        interaction = interaction_data;
+                    }
 
                     return {
                         ...job.toObject(),
