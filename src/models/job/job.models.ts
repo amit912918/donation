@@ -19,7 +19,7 @@ interface IJob extends Document {
     contactNumber: string;
     hideContact: boolean;
     isPublished: boolean;
-    documents: IDocumentInfo[]; // Array of document URLs
+    documents: IDocumentInfo[];
 }
 
 const JobSchema: Schema = new Schema({
