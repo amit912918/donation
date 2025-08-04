@@ -255,3 +255,35 @@ export const getDonationByUser = async (req: RequestType, res: Response, next: N
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
+
+// 📌 Get donation analytics data
+export const getDonationAnalyticsData = async (req: RequestType, res: Response, next: NextFunction) => {
+    try {
+        const appUserId = req?.payload?.appUserId;
+        const total_donation = await Donation.countDocuments({ user: appUserId });
+        const result = await Donation.aggregate([
+        {
+            $match: { user: new mongoose.Types.ObjectId(appUserId) }  // Filter by user
+        },
+        {
+            $group: {
+            _id: null,                          // Grouping across all matched documents
+            totalDonated: { $sum: "$amount" }  // Sum the `amount` field
+            }
+        }
+        ]);
+        const amount_donated = result[0]?.totalDonated || 0;
+
+        const mission_count = await Mission.countDocuments({ missionCreatedBy: appUserId });
+        
+        res.status(200).json({
+            error: false,
+            success: true,
+            total_donation,
+            amount_donated,
+            mission_count
+        });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
