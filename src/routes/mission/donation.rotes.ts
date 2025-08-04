@@ -1,4 +1,4 @@
-import { donateToMission, getAllDonors, getDonateById, getDonationByUser, getMissionDonation, getTopDonor } from "@/controllers/mission/donation.conrollers";
+import { donateToMission, getAllDonors, getDonateById, getDonationAnalyticsData, getDonationByUser, getMissionDonation, getTopDonor } from "@/controllers/mission/donation.conrollers";
 import { verifyAccessToken } from "@/middlewares/jwt/jwt.middleware";
 import { Router } from "express";
 
@@ -10,5 +10,6 @@ appDonationRouterV1.get('/get-mission-donation/:missionId', verifyAccessToken, g
 appDonationRouterV1.post('/get-bhamashas', verifyAccessToken, getTopDonor);
 appDonationRouterV1.get('/get-all-donors', verifyAccessToken, getAllDonors);
 appDonationRouterV1.get('/get-donation-by-user', verifyAccessToken, getDonationByUser);
+appDonationRouterV1.get('/get-donation-analytics-data', verifyAccessToken, getDonationAnalyticsData);
 
 export default appDonationRouterV1;
