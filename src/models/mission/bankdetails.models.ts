@@ -35,7 +35,8 @@ const BankDetailsSchema: Schema = new Schema<IBankDetails>(
         },
         upiId: {
             type: String,
-            trim: true,
+            required: false,
+            default: ""
         },
         userId: {
             type: mongoose.Types.ObjectId,

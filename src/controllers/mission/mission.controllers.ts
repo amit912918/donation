@@ -28,7 +28,7 @@ export const createMission = async (req: RequestType, res: Response, next: NextF
             ifscCode: data.ifscCode,
             accountHolderName: data.accountHolderName,
             bankName: data.bankName,
-            upiId: data.upiId,
+            upiId: data.upiId ? data.upiId : "",
             userId: new mongoose.Types.ObjectId(req.payload?.appUserId)
         };
 
