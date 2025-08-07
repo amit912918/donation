@@ -35,6 +35,10 @@ export const createBiodata = async (req: RequestType, res: Response, next: NextF
                 profileCreatedById: appUserId,
             });
             await newBiodata.save(); // ✅ pre('save') runs here
+            await User.updateOne(
+            { _id: new mongoose.Types.ObjectId(appUserId) },
+            { $set: { "profile.isMatrimonyProfileCreated": true } }
+            );
 
             res.status(200).json({ success: true, message: "Biodata created", data: newBiodata });
             return;
@@ -148,6 +152,24 @@ export const getBicholiyaList = async (req: Request, res: Response, next: NextFu
         });
     } catch (error: unknown) {
         console.error("Error in get bicholiya list", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
+    }
+};
+
+export const getUserBiodata = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const appUserId = req?.payload?.appUserId;
+
+        const biodata = await Biodata.findOne({ profileCreatedById: appUserId });
+
+        res.status(200).json({
+            success: true,
+            error: false,
+            data: biodata
+        });
+    } catch (error: unknown) {
+        console.error("Error in get user biodata", error);
         const err = error instanceof Error ? error.message : "Internal server error";
         next(createError(500, err));
     }

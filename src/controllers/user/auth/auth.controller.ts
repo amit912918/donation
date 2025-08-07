@@ -276,6 +276,26 @@ export const getUserProfile = async (req: RequestType, res: Response, next: Next
   }
 };
 
+export const getAllProfile = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+  try {
+
+    const users = await User.find().select('-password');
+    if (users.length === 0) {
+      return next(createError(404, 'No user not found'));
+    }
+
+    res.status(200).json({
+      error: false,
+      success: true,
+      message: "Profile get successfully!",
+      data: users
+    });
+  } catch (error: any) {
+    console.error('Error fetching user profile:', error);
+    return next(createError(500, error.message || 'Internal server error'));
+  }
+};
+
 export const verifyOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { contact, otp, isEmail, type }: { contact: string; otp: string; isEmail: boolean; type: string } = req.body;
