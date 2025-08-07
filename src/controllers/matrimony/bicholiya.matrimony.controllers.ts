@@ -9,20 +9,48 @@ export const getBicholiyaList = async (req: Request, res: Response, next: NextFu
     try {
         const search = (req.query.search as string) || "";
 
-        const searchQuery = {
+        const searchQuery: any = {
             isBicholiya: true,
-            ...(search && {
-                name: { $regex: search, $options: "i" }
-            })
         };
 
-        const bicholiyaDatas = await User.find(searchQuery).sort({ createdAt: -1 });
+        if (search) {
+            searchQuery.name = { $regex: search, $options: "i" };
+        }
+
+        const new_bicholiya_data = await User.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: "users", // collection name (must match the collection name in MongoDB, usually lowercase plural of model)
+                    localField: "_id",
+                    foreignField: "BicholiyaId",
+                    as: "missions"
+                }
+            },
+            {
+                $addFields: {
+                    mission_count: { $size: "$missions" }
+                }
+            },
+            {
+                $project: {
+                    missions: 0 // remove the full array, keep only count
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ]);
 
         res.status(200).json({
             success: true,
             error: false,
-            count: bicholiyaDatas.length,
-            data: bicholiyaDatas
+            count: new_bicholiya_data.length,
+            data: new_bicholiya_data
         });
     } catch (error: unknown) {
         console.error("Error in get bicholiya list", error);

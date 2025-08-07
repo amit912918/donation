@@ -14,6 +14,7 @@ export interface IProfile extends Document {
     dob?: Date | null;
     PAN?: string | null;
     Language?: string | null;
+    isMatrimonyProfileCreated?: boolean | false;
 }
 
 // Define Mongoose Schema
@@ -34,7 +35,8 @@ const profileSchema = new Schema<IProfile>(
         occupation: { type: String, default: '' },
         dob: { type: String, required: true },
         PAN: { type: String, default: '' },
-        Language: { type: String, default: 'English' }
+        Language: { type: String, default: 'English' },
+        isMatrimonyProfileCreated: { type: Boolean, default: false}
     },
     { timestamps: true }
 );
