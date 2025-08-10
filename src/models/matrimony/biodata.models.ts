@@ -120,7 +120,7 @@ const BiodataSchema: Schema = new Schema<IBiodata>({
     candidate: [CandidateSchema],
     state: { type: String, required: true },
     city: { type: String, required: true },
-    BicholiyaId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    BicholiyaId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     gotraDetails: {
         selfGotra: { type: String },
         maaGotra: { type: String },
