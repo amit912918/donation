@@ -44,6 +44,10 @@ export const createNews = async (req: RequestType, res: Response, next: NextFunc
 export const getAllNews = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const newsList = await News.find()
+        .populate({
+            path: 'publishedById',
+            select: 'name email profile'
+        })
         .sort({ createdAt: -1 });
         res.status(200).json(newsList);
     } catch (error: any) {
@@ -114,7 +118,11 @@ export const getMentorAnalyticsData = async (req: RequestType, res: Response, ne
 // Get a single news by ID
 export const getNewsById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const news = await News.findById(req.params.id);
+        const news = await News.findById(req.params.id)
+        .populate({
+            path: 'publishedById',
+            select: 'name email profile'
+        });
         // if (!news) return next(createError(400, 'News not found'));
         res.status(200).json(
             {
