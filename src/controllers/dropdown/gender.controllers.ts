@@ -6,8 +6,9 @@ import createError from "http-errors";
 export const createGender = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { genderName, description } = req.body;
+        console.log(req.body);
         const genderExist = await Gender.find({ genderName });
-        if (genderExist) {
+        if (genderExist.length !== 0) {
             return next(createError(400, "Gender already exist!"))
         }
         const gender = new Gender({ genderName, description });

@@ -25,6 +25,10 @@ export const createBiodata = async (req: RequestType, res: Response, next: NextF
             // ✅ Update fields manually
             Object.assign(biodata, req.body);
             await biodata.save(); // ✅ pre('save') runs here
+            await User.updateOne(
+            { _id: new mongoose.Types.ObjectId(appUserId) },
+            { $set: { "profile.isMatrimonyProfileCreated": true } }
+            );
 
             res.status(200).json({ success: true, message: "Biodata updated", data: biodata });
             return;
@@ -315,7 +319,21 @@ export const recommendationBiodata = async (req: RequestType, res: Response, nex
                     as: 'interactionDetails'
                 }
             },
-        ])
+            {
+            $lookup: {
+                from: 'users',               // collection name in MongoDB
+                localField: 'BicholiyaId',    // field in Biodata
+                foreignField: '_id',          // _id in User
+                as: 'bicholiyaDetails'
+            }
+            },
+            {
+                $unwind: {
+                path: '$bicholiyaDetails',
+                preserveNullAndEmptyArrays: true // keeps docs even if no bicholiya found
+            }
+            }
+            ])
             .skip(skip)
             .limit(limit);
 

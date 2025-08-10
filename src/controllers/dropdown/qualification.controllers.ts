@@ -8,7 +8,12 @@ export const createQualification = async (req: Request, res: Response, next: Nex
         const { qualificationName, description } = req.body;
         const qualification = new Qualification({ qualificationName, description });
         const saved = await qualification.save();
-        res.status(200).json(saved);
+        res.status(200).send({
+            error: false,
+            success: true,
+            message: "Qualification created successfully",
+            data: saved
+        });
     } catch (err) {
         next(err);
     }
@@ -18,7 +23,12 @@ export const createQualification = async (req: Request, res: Response, next: Nex
 export const getAllQualifications = async (_req: Request, res: Response, next: NextFunction) => {
     try {
         const qualifications = await Qualification.find();
-        res.json(qualifications);
+        res.status(200).send({
+            error: false,
+            success: true,
+            message: "Qualification get successfully",
+            data: qualifications
+        });
     } catch (err) {
         next(err);
     }
@@ -29,7 +39,12 @@ export const getQualificationById = async (req: Request, res: Response, next: Ne
     try {
         const qualification = await Qualification.findById(req.params.id);
         if (!qualification) throw createError(404, "Qualification not found");
-        res.json(qualification);
+        res.status(200).send({
+            error: false,
+            success: true,
+            message: "Qualification get by id successfully",
+            data: qualification
+        });
     } catch (err) {
         next(err);
     }
@@ -45,7 +60,12 @@ export const updateQualification = async (req: Request, res: Response, next: Nex
             { new: true, runValidators: true }
         );
         if (!updated) throw createError(404, "Qualification not found");
-        res.json(updated);
+        res.status(200).send({
+            error: false,
+            success: true,
+            message: "Qualification updated successfully",
+            data: updated
+        });
     } catch (err) {
         next(err);
     }
@@ -56,7 +76,12 @@ export const deleteQualification = async (req: Request, res: Response, next: Nex
     try {
         const deleted = await Qualification.findByIdAndDelete(req.params.id);
         if (!deleted) throw createError(404, "Qualification not found");
-        res.json({ message: "Qualification deleted successfully" });
+        res.status(200).send({
+            error: false,
+            success: true,
+            message: "Qualification deleted successfully",
+            data: deleted
+        });
     } catch (err) {
         next(err);
     }

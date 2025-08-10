@@ -4,6 +4,7 @@ import User from "@/models/auth/auth.models";
 import BiodataInteraction from "@/models/matrimony/biodata.interaction.models";
 import Biodata from "@/models/matrimony/biodata.models";
 import { Request, Response, NextFunction } from "express";
+import mongoose from "mongoose";
 
 export const getBicholiyaList = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -101,6 +102,53 @@ export const getAreawiseCandidateForBicholiya = async (req: RequestType, res: Re
     const [user_list, total] = await Promise.all([
       Biodata.find(query).skip(skip).limit(Number(limit)),
       Biodata.countDocuments(query),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      error: false,
+      message: "Area wise user data retrieved successfully",
+        total,
+        currentPage: Number(page),
+        totalPages: Math.ceil(total / Number(limit)),
+        users: user_list
+    });
+
+  } catch (error: any) {
+    console.log("Error in area wise user data", error);
+    next(createError(error.status || 500, error.message || "Internal Server Error"));
+  }
+};
+
+export const getAreaWiseBicholiyaForCandidate = async (req: RequestType, res: Response, next: NextFunction) => {
+  try {
+    const { page = 1, limit = 10, search = '' } = req.query;
+
+    const user_detail = await User.findOne({ _id: req.payload?.appUserId });
+    const user_city = user_detail?.profile?.city;
+
+    if (!user_city) {
+      return next(createError(400, 'City not found in user profile'));
+    }
+
+    const query: any = {
+     _id: { $ne: new mongoose.Types.ObjectId(req?.payload?.appUserId) },
+    'profile.city': user_city
+    };
+
+    // Apply search filter if provided
+    if (search) {
+    query['profile.name'] = { $regex: search, $options: 'i' }; // assuming name is inside profile
+    }
+
+    // Pagination values
+    const pageNumber = Number(page) || 1;
+    const pageSize = Number(limit) || 10;
+    const skip = (pageNumber - 1) * pageSize;
+
+    const [user_list, total] = await Promise.all([
+    User.find(query).skip(skip).limit(pageSize),
+    User.countDocuments(query),
     ]);
 
     res.status(200).json({
