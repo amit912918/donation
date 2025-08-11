@@ -418,3 +418,36 @@ export const getAllCity = async (req: Request, res: Response, next: NextFunction
     next(createError(500, error?.message || "Internal server error"));
   }
 };
+
+export const getSpecificState = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+
+    const { countryCode = "IN" } = req.params;
+    const states = State.getStatesOfCountry(countryCode);
+    res.status(200).json({
+      error: false,
+      success: true,
+      states
+    });   
+  } catch (error: any) {
+    console.error("Error in get all country", error);
+    next(createError(500, error?.message || "Internal server error"));
+  }
+};
+
+export const getSpecificCity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+   
+    const { stateCode } = req.params;
+    const countryCode = "IN";
+    const cities = City.getCitiesOfState(countryCode, stateCode);
+    res.status(200).json({
+      error: false,
+      success: true,
+      cities
+    });
+  } catch (error: any) {
+    console.error("Error in get all country", error);
+    next(createError(500, error?.message || "Internal server error"));
+  }
+};
