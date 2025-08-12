@@ -30,7 +30,7 @@ export const donateToMission = async (req: RequestType, res: Response, next: Nex
 // 📌 Get top donon of the week
 export const getTopDonor = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const { time } = req.body; // expects { "time": "weekly" } or { "time": "monthly" }
+        const { time, search } = req.body; // expects { "time": "weekly", "search": "john" }
         const now = new Date();
         let startDate: Date;
         let limit: number;
@@ -46,27 +46,25 @@ export const getTopDonor = async (req: Request, res: Response, next: NextFunctio
             limit = 10;
         }
 
+        // Match donation time
+        const matchStage: any = {
+            donatedAt: { $gte: startDate, $lte: now }
+        };
+
+        // Aggregate top donors
         const topDonors = await Donation.aggregate([
-            {
-                $match: {
-                    donatedAt: { $gte: startDate, $lte: now }
-                }
-            },
+            { $match: matchStage },
             {
                 $group: {
                     _id: '$user',
                     totalDonated: { $sum: '$amount' }
                 }
             },
-            {
-                $sort: { totalDonated: -1 }
-            },
-            {
-                $limit: limit
-            }
+            { $sort: { totalDonated: -1 } },
+            { $limit: limit }
         ]);
 
-        if (topDonors.length === 0) {
+        if (!topDonors.length) {
             res.status(200).json({
                 success: true,
                 error: false,
@@ -74,39 +72,46 @@ export const getTopDonor = async (req: Request, res: Response, next: NextFunctio
                 data: []
             });
             return;
-            // throw createError(404, `No donations found for the selected ${time || 'weekly'} period.`);
         }
 
-        // Get donor details
-        const data = await Promise.all(
-            topDonors.map(async (donor) => {
-                const userData = await User.findById(donor._id).select({
-                    name: 1,
-                    email: 1,
-                    mobile: 1,
-                    'profile.image': 1,
-                    'profile.address': 1,
-                    'profile.city': 1,
-                    'profile.gender': 1,
-                    'profile.dob': 1
-                });
+        // Build user filter if search is provided
+        const userFilter: any = {};
+        if (search && search.trim()) {
+            userFilter.name = { $regex: search.trim(), $options: "i" };
+        }
 
-                return {
-                    totalDonated: donor.totalDonated,
-                    userData
-                };
+        // Get donor details with optional search
+        const donorsData = await Promise.all(
+            topDonors.map(async (donor) => {
+                const userData = await User.findOne({ _id: donor._id, ...userFilter })
+                    .select({
+                        name: 1,
+                        email: 1,
+                        mobile: 1,
+                        'profile.image': 1,
+                        'profile.address': 1,
+                        'profile.city': 1,
+                        'profile.gender': 1,
+                        'profile.dob': 1
+                    });
+
+                if (!userData) return null; // filtered out by search
+                return { totalDonated: donor.totalDonated, userData };
             })
         );
+
+        // Filter out nulls (non-matching search results)
+        const filteredData = donorsData.filter(Boolean);
 
         res.status(200).json({
             success: true,
             error: false,
             message: `Top ${limit} ${time || 'weekly'} donors fetched successfully.`,
-            data
+            data: filteredData
         });
 
     } catch (error: any) {
-        console.log("Error in get top donor", error);
+        console.log("Error in getTopDonor:", error);
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
