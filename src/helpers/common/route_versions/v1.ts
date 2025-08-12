@@ -17,6 +17,9 @@ import appEventRouterV1 from "@/routes/event/news.routes";
 import appAdminRouterV1 from "@/routes/admin/admin.routes";
 import appS3FilesRouterV1 from "@/routes/files_s3/files.routes";
 import appBicholiyaRouterV1 from "@/routes/matrimony/bicholiya.matrimony.routes";
+import appBusinessSectorRouterV1 from "@/routes/dropdown/businessSector.routes";
+import appBusinessTypeRouterV1 from "@/routes/dropdown/businessType.routes";
+import appPositionRouterV1 from "@/routes/dropdown/position.routes";
 
 const v1 = Router();
 
@@ -40,6 +43,9 @@ v1.use('/profilecount', appProfileCountRouterV1);
 v1.use('/qualification', appQualificaionRouterV1);
 v1.use('/relation', appRelationRouterV1);
 v1.use('/sibling', appSiblingRouterV1);
+v1.use('/businesssector', appBusinessSectorRouterV1);
+v1.use('/businesstype', appBusinessTypeRouterV1);
+v1.use('/position', appPositionRouterV1);
 v1.use('/admin', appAdminRouterV1);
 
 export { v1 };
