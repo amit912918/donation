@@ -122,10 +122,7 @@ export const getAreawiseCandidateForBicholiya = async (req: RequestType, res: Re
 
 export const getAreaWiseBicholiyaForCandidate = async (req: RequestType, res: Response, next: NextFunction) => {
   try {
-    const { page = 1, limit = 10, search = '' } = req.query;
-
-    const user_detail = await User.findOne({ _id: req.payload?.appUserId });
-    const user_city = user_detail?.profile?.city;
+    const { page = 1, limit = 10, user_city, search = '' } = req.query;
 
     if (!user_city) {
       return next(createError(400, 'City not found in user profile'));
