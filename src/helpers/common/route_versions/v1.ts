@@ -20,6 +20,7 @@ import appBicholiyaRouterV1 from "@/routes/matrimony/bicholiya.matrimony.routes"
 import appBusinessSectorRouterV1 from "@/routes/dropdown/businessSector.routes";
 import appBusinessTypeRouterV1 from "@/routes/dropdown/businessType.routes";
 import appPositionRouterV1 from "@/routes/dropdown/position.routes";
+import appCommonTypeRouterV1 from "@/routes/dropdown/common.routes";
 
 const v1 = Router();
 
@@ -46,6 +47,7 @@ v1.use('/sibling', appSiblingRouterV1);
 v1.use('/businesssector', appBusinessSectorRouterV1);
 v1.use('/businesstype', appBusinessTypeRouterV1);
 v1.use('/position', appPositionRouterV1);
+v1.use('/commontype', appCommonTypeRouterV1);
 v1.use('/admin', appAdminRouterV1);
 
 export { v1 };

@@ -126,7 +126,7 @@ export const getAreaWiseBicholiyaForCandidate = async (req: RequestType, res: Re
 
     if (!user_city) {
       return next(createError(400, 'City not found in user profile'));
-    }
+    }               
 
     const query: any = {
      _id: { $ne: new mongoose.Types.ObjectId(req?.payload?.appUserId) },
@@ -213,3 +213,66 @@ export const updateBioDataStatus = async (req: RequestType, res: Response, next:
         next(createError(500, err));
     }
 };
+
+export const getBiodataStatusWise = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { status, search, page = "1", limit = "10" } = req.query;
+        console.log(req.query);
+
+        // Pagination values
+        const pageNumber = parseInt(page as string, 10);
+        const limitNumber = parseInt(limit as string, 10);
+        const skip = (pageNumber - 1) * limitNumber;
+
+        // Build query condition
+        let query: any = {};
+
+        // status filter
+        if (status) {
+            if (!["approved", "rejected", "pending"].includes(status as string)) {
+                throw createError(400, "Invalid status");
+            }
+            query.status = status;
+        }
+
+        // search filter (case insensitive regex)
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } },
+                { phone: { $regex: search, $options: "i" } },
+            ];
+        }
+
+        // get total count (for pagination metadata)
+        const totalCount = await Biodata.countDocuments(query);
+
+        // fetch paginated result
+        const biodata = await Biodata.find(query)
+            .skip(skip)
+            .limit(limitNumber)
+            .sort({ createdAt: -1 });
+
+        if (!biodata || biodata.length === 0) {
+            throw createError(404, "No biodata found");
+        }
+
+        res.status(200).json({
+            error: false,
+            success: true,
+            message: "Biodata fetched successfully",
+            pagination: {
+                total: totalCount,
+                page: pageNumber,
+                limit: limitNumber,
+                totalPages: Math.ceil(totalCount / limitNumber),
+            },
+            data: biodata,
+        });
+    } catch (error: unknown) {
+        console.error("Error in biodata status wise search:", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
+    }
+};
+
