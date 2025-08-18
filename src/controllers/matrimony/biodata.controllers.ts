@@ -188,7 +188,7 @@ export const getNewlyJoined = async (req: RequestType, res: Response, next: Next
         const newlyJoinedData = await Biodata.aggregate([
         {
             $match: {
-            profileCreatedById: { $ne: req?.payload?.appUserId }
+            profileCreatedById: { $ne: new mongoose.Types.ObjectId(req?.payload?.appUserId) }
             }
         },
         {
@@ -234,7 +234,7 @@ export const getNewlyJoined = async (req: RequestType, res: Response, next: Next
         const newlyJoinedCount = await Biodata.aggregate([
         {
             $match: {
-            profileCreatedById: { $ne: req?.payload?.appUserId }
+            profileCreatedById: { $ne: new mongoose.Types.ObjectId(req?.payload?.appUserId) }
             }
         },
         {
@@ -309,7 +309,7 @@ export const recommendationBiodata = async (req: RequestType, res: Response, nex
 
         const allTopMatchData = await Biodata.aggregate([
             {
-                $match: { profileCreatedById: { $ne: req?.payload?.appUserId }, gotraDetails: userBioData?.gotraDetails }
+                $match: { profileCreatedById: { $ne: new mongoose.Types.ObjectId(req?.payload?.appUserId) }, gotraDetails: userBioData?.gotraDetails }
             },
             {
                 $lookup: {
