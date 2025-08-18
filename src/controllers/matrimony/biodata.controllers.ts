@@ -265,11 +265,12 @@ export const getNewlyJoined = async (req: RequestType, res: Response, next: Next
             $count: "total"
         }
         ]);
+        console.log(newlyJoinedCount, "newlyJoinedCount");
 
         res.status(200).json({
             success: true,
             error: false,
-            count: newlyJoinedCount[0].total,
+            count: newlyJoinedCount[0]?.total || 0,
             data: newlyJoinedData
         });
     } catch (error: unknown) {
