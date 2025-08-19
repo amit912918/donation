@@ -310,7 +310,7 @@ export const recommendationBiodata = async (req: RequestType, res: Response, nex
 
         const allTopMatchData = await Biodata.aggregate([
             {
-                $match: { profileCreatedById: { $ne: new mongoose.Types.ObjectId(req?.payload?.appUserId) }, gotraDetails: userBioData?.gotraDetails }
+                $match: { profileCreatedById: { $ne: new mongoose.Types.ObjectId(req?.payload?.appUserId) }, gotraDetails: { $ne: userBioData?.gotraDetails } }
             },
             {
                 $lookup: {
@@ -322,9 +322,9 @@ export const recommendationBiodata = async (req: RequestType, res: Response, nex
             },
             {
             $lookup: {
-                from: 'users',               // collection name in MongoDB
-                localField: 'BicholiyaId',    // field in Biodata
-                foreignField: '_id',          // _id in User
+                from: 'users',
+                localField: 'BicholiyaId',
+                foreignField: '_id',
                 as: 'bicholiyaDetails'
             }
             },
@@ -678,7 +678,7 @@ export const biodataCancelFavourite_Remove = async (req: RequestType, res: Respo
         }
 
         if (!["cancel", "remove_from_favourite"].includes(type)) {
-            throw createError(400, "Invalid interaction type");
+            throw createError(400, "Invalid field");
         }
 
         const biodata = await Biodata.findById(biodataId);
@@ -719,6 +719,57 @@ export const biodataCancelFavourite_Remove = async (req: RequestType, res: Respo
     }
 };
 
+export const biodataPayment = async (
+    req: RequestType,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const userId = req?.payload?.appUserId;
+        const { biodataId, payment_status = "pending" } = req.body;
+
+        // Validate required fields
+        if (!payment_status || !biodataId) {
+            return next(createError(400, "Missing required fields"));
+        }
+
+        // Validate payment status
+        if (!["pending", "rejected", "completed"].includes(payment_status)) {
+            return next(createError(400, "Invalid payment status"));
+        }
+
+        // Check biodata existence
+        const biodata = await Biodata.findById(biodataId);
+        if (!biodata) return next(createError(404, "Biodata not found"));
+
+        // Check user existence
+        const user = await User.findById(userId);
+        if (!user) return next(createError(404, "User not found"));
+
+        // Update payment status
+        const updated = await Biodata.findOneAndUpdate(
+            { _id: biodataId, profileCreatedById: userId },   // ✅ correct filter
+            { $set: { paymentStatus: payment_status } },
+            { new: true }                 // return updated doc
+        );
+
+        if (!updated) {
+            return next(createError(400, "Failed to update biodata"));
+        }
+
+        // ✅ Return updated document
+        res.status(200).json({
+            success: true,
+            message: "Biodata payment status updated successfully",
+            data: updated
+        });
+    } catch (error: unknown) {
+        console.error("Error in biodata payment update:", error);
+        next(error); // let error middleware handle it
+    }
+};
+
+
 export const checkBiodataCompleted = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
 
@@ -731,6 +782,32 @@ export const checkBiodataCompleted = async (req: RequestType, res: Response, nex
             success: true,
             message: "Interaction updated successfully",
             isComplete
+        });
+    } catch (error: unknown) {
+        console.error("Error in biodata cancel remove and remove_from_favourite:", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
+    }
+};
+
+export const biodataVerificationByAdmin = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+
+        const biodataId = req.params.id;
+        const { verified } = req.body;
+
+        if (typeof verified !== "boolean") {
+            throw createError(400, "verified must be true or false");
+        }
+
+        // Example: Update DB
+        await Biodata.updateOne({ _id: biodataId }, { isVerified: verified });
+
+        res.json({
+            error: false,
+            success: true,
+            message: `Biodata ${verified ? "verified" : "unverified"} successfully`,
+            data: { id: biodataId, verified }
         });
     } catch (error: unknown) {
         console.error("Error in biodata cancel remove and remove_from_favourite:", error);

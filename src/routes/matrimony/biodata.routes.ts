@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyAccessToken } from "@/middlewares/jwt/jwt.middleware";
-import { biodataCancelFavourite_Remove, biodataInteraction, biodataSendAccept, checkBiodataCompleted, createBiodata, deleteBiodata, getAllBiodataInteraction, getAllBioDataMatch, getAllBiodatas, getBicholiyaAnalyticsData, getBicholiyaList, getBiodataById, getBiodataByUserId, getBiodataInteraction, getBiodataInteractionByUser, getFavouristList, getNewlyJoined, getReceiveRequest, getSendRequest, getUserBiodata, recommendationBiodata, updateBiodata } from "@/controllers/matrimony/biodata.controllers";
+import { biodataCancelFavourite_Remove, biodataInteraction, biodataPayment, biodataSendAccept, biodataVerificationByAdmin, checkBiodataCompleted, createBiodata, deleteBiodata, getAllBiodataInteraction, getAllBioDataMatch, getAllBiodatas, getBicholiyaAnalyticsData, getBicholiyaList, getBiodataById, getBiodataByUserId, getBiodataInteraction, getBiodataInteractionByUser, getFavouristList, getNewlyJoined, getReceiveRequest, getSendRequest, getUserBiodata, recommendationBiodata, updateBiodata } from "@/controllers/matrimony/biodata.controllers";
 
 const appMatrimonyRouterV1 = Router();
 
@@ -18,6 +18,7 @@ appMatrimonyRouterV1.get("/get-bicholiya-analytics-data", verifyAccessToken, get
 appMatrimonyRouterV1.post("/biodata-interaction", verifyAccessToken, biodataInteraction);
 appMatrimonyRouterV1.post("/biodata-send-accept", verifyAccessToken, biodataSendAccept);
 appMatrimonyRouterV1.post("/biodata-cancel-favourite_remove", verifyAccessToken, biodataCancelFavourite_Remove);
+appMatrimonyRouterV1.post("/biodata-payment", verifyAccessToken, biodataPayment);
 appMatrimonyRouterV1.get("/get-send-request", verifyAccessToken, getSendRequest);
 appMatrimonyRouterV1.get("/get-all-biodata-interaction", verifyAccessToken, getAllBiodataInteraction);
 appMatrimonyRouterV1.get("/get-biodata-interaction-by-user", verifyAccessToken, getBiodataInteractionByUser);
@@ -25,6 +26,7 @@ appMatrimonyRouterV1.get("/get-receive-request", verifyAccessToken, getReceiveRe
 appMatrimonyRouterV1.get("/get-favourite-list", verifyAccessToken, getFavouristList);
 appMatrimonyRouterV1.get("/check-biodata-completed", verifyAccessToken, checkBiodataCompleted);
 
+appMatrimonyRouterV1.patch("/admin/biodata/:id/verification", verifyAccessToken, biodataVerificationByAdmin);
 appMatrimonyRouterV1.get("/:id", verifyAccessToken, getBiodataById);
 appMatrimonyRouterV1.get("/get-biodata-by-userid/:id", verifyAccessToken, getBiodataByUserId);
 appMatrimonyRouterV1.put("/:id", verifyAccessToken, updateBiodata);
