@@ -96,6 +96,7 @@ export interface IBiodata extends Document {
         // elderBrotherOccupation: string;
         additionalInfo?: string;
     };
+    paymentStatus?: string;
     isVerified?: boolean;
     status?: string;
     statusUpdateTime?: Date;
@@ -141,8 +142,9 @@ const BiodataSchema: Schema = new Schema<IBiodata>({
         // elderBrotherOccupation: { type: String },
         additionalInfo: { type: String },
     },
-    isVerified: { type: Boolean, default: false },
-    status: { type: String, enum: ['approved', 'rejected', 'pending'], default: 'pending' },
+    paymentStatus: { type: String, ENUM: ['pending', 'rejected', 'completed'], default: 'pending' },
+    isVerified: { type: Boolean, default: false }, // verified by admin
+    status: { type: String, enum: ['approved', 'rejected', 'pending'], default: 'pending' }, // maintained by bicholiya
     statusUpdateTime: {
             type: Date,
             default: ""
