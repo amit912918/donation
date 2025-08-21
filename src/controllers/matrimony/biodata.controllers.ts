@@ -47,8 +47,17 @@ export const createBiodata = async (req: RequestType, res: Response, next: NextF
             res.status(200).json({ success: true, message: "Biodata created", data: newBiodata });
             return;
         }
-    } catch (error) {
-        next(error);
+    } catch (error: any) {
+        console.log("Error in create biodata", error);
+        if (error.name === "ValidationError") {
+            const firstError = Object.values(error.errors)[0] as any;
+            res.status(400).json({
+                success: false,
+                message: firstError.message
+            });
+            return;
+        }
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -84,8 +93,9 @@ export const getAllBiodatas = async (req: Request, res: Response, next: NextFunc
             count: biodatas.length,
             data: biodatas
         });
-    } catch (error) {
-        next(error);
+    } catch (error: any) {
+        console.log("Error in get all biodata", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -94,8 +104,9 @@ export const getBiodataById = async (req: Request, res: Response, next: NextFunc
         const biodata = await Biodata.findById(req.params.id);
 
         res.status(200).json({ success: true, data: biodata });
-    } catch (error) {
-        next(error);
+    } catch (error: any) {
+        console.log("Error in get biodata by id", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
