@@ -16,9 +16,22 @@ export const missionSchema = Joi.object({
     inclFather: Joi.bool().required(),
     contactNumber: Joi.string().pattern(/^[0-9]{10}$/).required(),
     documents: Joi.array().optional(),
-    accountNumber: Joi.string().required(),
-    ifscCode: Joi.string().pattern(/^[A-Z]{4}0[A-Z0-9]{6}$/).required(),
-    accountHolderName: Joi.string().required(),
-    bankName: Joi.string().required(),
+    accountNumber: Joi.string().required().messages({
+        "string.base": "Account number must be a string",
+        "any.required": "Account number is required"
+    }),
+    ifscCode: Joi.string().pattern(/^[A-Z]{4}0[A-Z0-9]{6}$/).required().messages({
+        "string.base": "IFSC code must be a string",
+        "string.pattern.base": "IFSC code must be valid (e.g. ABCD0123456)",
+        "any.required": "IFSC code is required"
+    }),
+    accountHolderName: Joi.string().required().messages({
+        "string.base": "Account holder name must be a string",
+        "any.required": "Account holder name is required"
+    }),
+    bankName: Joi.string().required().messages({
+        "string.base": "Bank name must be a string",
+        "any.required": "Bank name is required"
+    }),
     upiId: Joi.string().optional(),
 });

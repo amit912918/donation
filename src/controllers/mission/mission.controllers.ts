@@ -154,6 +154,9 @@ export const getAllMissions = async (req: RequestType, res: Response, next: Next
         // ]
         // };
 
+        // Always enforce status filter
+        // searchQuery.$and.push({ isPublished: true, status: "Approved" });
+
         if (typeof searchKey === 'string' && searchKey.trim() !== '') {
             const regex = new RegExp(searchKey.replace(/"/g, ''), 'i');
             searchQuery.$and.push({
