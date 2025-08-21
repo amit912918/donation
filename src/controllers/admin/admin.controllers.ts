@@ -98,11 +98,18 @@ export const getMentorList = async (req: RequestType, res: Response, next: NextF
 export const activeMissionByAdmin = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const missionId = req.params.missionId;
-        const { isActive } = req.body;
+        const { isPublished, status } = req.body;
+
+        if (!["Pending", "Approved", "Disapproved"].includes(status)) {
+            return next(createError(400, "Invalid mission status"));
+        }
 
         const missionUpdateData = await Mission.findByIdAndUpdate(
-            req.params.missionId,
-            { isActive },
+            missionId,
+            {
+                isPublished: isPublished ? true : false,
+                status
+            },
             { new: true, runValidators: true }
         );
 
