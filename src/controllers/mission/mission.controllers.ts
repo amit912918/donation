@@ -15,12 +15,11 @@ export const createMission = async (req: RequestType, res: Response, next: NextF
     const session = await mongoose.startSession();
 
     try {
+        session.startTransaction();
         const { error, value } = missionSchema.validate(req.body);
         if (error) {
             throw createError(400, error.details[0].message || "Missing some field")
         }
-
-        session.startTransaction();
 
         const data: IMissionData = value;
 
