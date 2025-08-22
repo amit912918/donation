@@ -32,7 +32,7 @@ const JobInteractionSchema: Schema = new Schema(
         },
         interestedTime: {
             type: Date,
-            default: ""
+            default: new Date()
         },
         isContacted: {
             type: Boolean,

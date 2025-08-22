@@ -154,17 +154,17 @@ export const getAllMissions = async (req: RequestType, res: Response, next: Next
             throw createError(400, "Invalid limit. Limit must be a positive integer.");
         }
 
-        let searchQuery: any = { 
-            $and: []
-         };
-        // let searchQuery: any = {
-        // $and: [
-        //     { missionCreatedBy: { $ne: req?.payload?.appUserId } }
-        // ]
-        // };
+        // let searchQuery: any = { 
+        //     $and: []
+        //  };
+        let searchQuery: any = {
+        $and: [
+            { missionCreatedBy: { $ne: req?.payload?.appUserId } }
+        ]
+        };
 
         // Always enforce status filter
-        // searchQuery.$and.push({ isPublished: true, status: "Approved" });
+        searchQuery.$and.push({ isPublished: true, status: "Approved" });
 
         if (typeof searchKey === 'string' && searchKey.trim() !== '') {
             const regex = new RegExp(searchKey.replace(/"/g, ''), 'i');
@@ -349,7 +349,7 @@ export const getMissionById = async (req: Request, res: Response, next: NextFunc
 // 📌 Get latest mission
 export const getLatestMission = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
-        const mission = await Mission.find({}).sort({ createdAt: -1 }).limit(5);
+        const mission = await Mission.find({ missionCreatedBy: { $ne: req?.payload?.appUserId } }).sort({ createdAt: -1 }).limit(5);
         
         res.status(200).json(mission);
     } catch (error: any) {
