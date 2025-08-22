@@ -66,8 +66,6 @@ export const missionSchema = Joi.object({
       "any.required": "Contact number is required"
     }),
 
-  documents: Joi.array().items(Joi.string()).optional(),
-
   accountNumber: Joi.string().required().messages({
     "string.base": "Account number must be a string",
     "any.required": "Account number is required",
@@ -94,6 +92,4 @@ export const missionSchema = Joi.object({
     "any.required": "Bank name is required",
     "string.empty": "Bank name cannot be empty"
   }),
-
-  upiId: Joi.string().optional()
 });
