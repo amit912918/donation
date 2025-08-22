@@ -68,7 +68,7 @@ export const missionSchema = Joi.object({
       "any.required": "Contact number is required"
     }),
 
-  documents: Joi.array().items(Joi.string()).optional(),
+  documents: Joi.array().optional(),
 
   accountNumber: Joi.string().required().messages({
     "string.base": "Account number must be a string",
