@@ -66,7 +66,15 @@ export const createMission = async (req: RequestType, res: Response, next: NextF
     } catch (error: any) {
         await session.abortTransaction();
         session.endSession();
-        console.error("Error in createMission:", error);
+        console.error("Error in create mission:", error);
+        if (error.name === "ValidationError") {
+            const firstError = Object.values(error.errors)[0] as any;
+            res.status(400).json({
+                success: false,
+                message: firstError.message
+            });
+            return;
+        }
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };

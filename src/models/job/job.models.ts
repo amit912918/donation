@@ -2,9 +2,11 @@ import mongoose, { Schema, Document } from "mongoose";
 
 interface IDocumentInfo {
     type: string;
-    size: number;
+    size?: number;
     path_name: string;
+    side: string;
 }
+
 interface IJob extends Document {
     jobTitle: string;
     jobDescription: string;
@@ -22,29 +24,100 @@ interface IJob extends Document {
     documents: IDocumentInfo[];
 }
 
-const JobSchema: Schema = new Schema({
-    jobTitle: { type: String, required: true },
-    jobDescription: { type: String, required: true },
-    minimumQualification: { type: String, required: true },
-    jobType: { type: String, enum: ["Full Time", "Part Time"], required: true },
-    jobLocation: { type: String, enum: ["On Site", "Remote / Online / Work From Home"], required: true },
-    experience: { type: String, enum: ["Freshers", "Experienced", "Both"], required: true },
-    salaryCriteria: { type: String, required: true },
-    jobAddress: { type: String, required: true },
-    jobCity: { type: String, required: true },
-    businessName: { type: String, required: true },
-    contactNumber: { type: String, required: true },
-    hideContact: { type: Boolean, default: false },
-    isPublished: { type: Boolean, default: true },
-    jobCreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+const JobSchema: Schema = new Schema(
+  {
+    jobTitle: { 
+      type: String, 
+      required: [true, "Job title is required"] 
+    },
+    jobDescription: { 
+      type: String, 
+      required: [true, "Job description is required"] 
+    },
+    minimumQualification: { 
+      type: String, 
+      required: [true, "Minimum qualification is required"] 
+    },
+    jobType: { 
+      type: String, 
+      enum: { 
+        values: ["Full Time", "Part Time"], 
+        message: "Job type must be either 'Full Time' or 'Part Time'" 
+      }, 
+      required: [true, "Job type is required"] 
+    },
+    jobLocation: { 
+      type: String, 
+      enum: { 
+        values: ["On Site", "Remote / Online / Work From Home"], 
+        message: "Job location must be either 'On Site' or 'Remote / Online / Work From Home'" 
+      }, 
+      required: [true, "Job location is required"] 
+    },
+    experience: { 
+      type: String, 
+      enum: { 
+        values: ["Freshers", "Experienced", "Both"], 
+        message: "Experience must be 'Freshers', 'Experienced', or 'Both'" 
+      }, 
+      required: [true, "Experience is required"] 
+    },
+    salaryCriteria: { 
+      type: String, 
+      required: [true, "Salary criteria is required"] 
+    },
+    jobAddress: { 
+      type: String, 
+      required: [true, "Job address is required"] 
+    },
+    jobCity: { 
+      type: String, 
+      required: [true, "Job city is required"] 
+    },
+    businessName: { 
+      type: String, 
+      required: [true, "Business name is required"] 
+    },
+    contactNumber: { 
+      type: String, 
+      required: [true, "Contact number is required"] 
+    },
+    hideContact: { 
+      type: Boolean, 
+      default: false 
+    },
+    isPublished: { 
+      type: Boolean, 
+      default: true 
+    },
+    jobCreatedBy: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "User", 
+      required: [true, "Job creator (User) is required"] 
+    },
     documents: [
-        {
-            type: { type: String, required: true },
-            side: { type: String, enum: ["Front", "Back"], required: true },
-            path_name: { type: String, required: true }
+      {
+        type: { 
+          type: String, 
+          required: [true, "Document type is required"] 
+        },
+        side: { 
+          type: String, 
+          enum: { 
+            values: ["Front", "Back"], 
+            message: "Document side must be either 'Front' or 'Back'" 
+          }, 
+          required: [true, "Document side is required"] 
+        },
+        path_name: { 
+          type: String, 
+          required: [true, "Document path_name is required"] 
         }
+      }
     ]
-}, { timestamps: true });
+  }, 
+  { timestamps: true }
+);
 
 const Job = mongoose.model<IJob>("Job", JobSchema);
 export default Job;

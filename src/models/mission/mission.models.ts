@@ -20,30 +20,30 @@ export interface IMission extends Document {
 // Define Mongoose schema
 const MissionSchema: Schema = new Schema(
     {
-        mission_id: { type: String, unique: true, required: true },
-        title: { type: String, required: true },
-        description: { type: String, required: true },
+        mission_id: { type: String, unique: true, required: [true, "mission id is required"] },
+        title: { type: String, required: [true, "title is required"] },
+        description: { type: String, required: [true, "description is required"] },
         photos: { type: [String], default: [] },
         videoUrl: { type: String },
-        needyPersonAddress: { type: String, required: true },
-        needyPersonCity: { type: String, required: true },
+        needyPersonAddress: { type: String, required: [true, "needy person is required"] },
+        needyPersonCity: { type: String, required: [true, "needy person city is required"] },
         memberCount: {
-            son: { type: Number, required: true },
-            daughter: { type: Number, required: true }
+            son: { type: Number, required: [true, "son count is required"] },
+            daughter: { type: Number, required: [true, "daughter count is required"] }
         },
-        isWife: { type: Boolean, required: true, defaultValue: false },
-        inclMother: { type: Boolean, required: true, defaultValue: false },
-        inclFather: { type: Boolean, required: true, defaultValue: false },
-        contactNumber: { type: String, required: true },
+        isWife: { type: Boolean, required: [true, "wife mark is required"], defaultValue: false },
+        inclMother: { type: Boolean, required: [true, "mother inclusion mark is required"], defaultValue: false },
+        inclFather: { type: Boolean, required: [true, "father inclusion mark is required"], defaultValue: false },
+        contactNumber: { type: String, required: [true, "contact number is required"] },
         bankDetails: BankDetailsSchema,
-        missionCreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+        missionCreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: [true, "mission created by is required"] },
         isPublished: { type: Boolean, default: false },
         status: { type: String, Enum: ['Pending', 'Approved', 'Disapproved'], default: 'Pending' },
         documents: [
             {
-                type: { type: String, required: true },
-                side: { type: String, enum: ["Front", "Back"], required: true },
-                path_name: { type: String, required: true }
+                type: { type: String, required: [true, "document validation failed"] },
+                side: { type: String, enum: ["Front", "Back"], required: [true, "document validation failed"] },
+                path_name: { type: String, required: [true, "document validation failed"] }
             }
         ]
     },

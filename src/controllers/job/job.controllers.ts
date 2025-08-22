@@ -36,6 +36,15 @@ export const createJob = async (req: RequestType, res: Response, next: NextFunct
         await newJob.save();
         res.status(200).json({ message: "Job created successfully", job: newJob });
     } catch (error: any) {
+        console.log("Error in create job", error);
+        if (error.name === "ValidationError") {
+            const firstError = Object.values(error.errors)[0] as any;
+            res.status(400).json({
+                success: false,
+                message: firstError.message
+            });
+            return;
+        }
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
