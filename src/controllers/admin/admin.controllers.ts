@@ -1,6 +1,7 @@
 import { createError } from "@/helpers/common/backend.functions";
 import { RequestType } from "@/helpers/shared/shared.type";
 import User from "@/models/auth/auth.models";
+import Job from "@/models/job/job.models";
 import Mission from "@/models/mission/mission.models";
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
@@ -117,6 +118,36 @@ export const activeMissionByAdmin = async (req: RequestType, res: Response, next
             error: false,
             success: true,
             message: "Mission updated successfully",
+            data: missionUpdateData
+        });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 Active job by admin
+export const activeJobByAdmin = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const jobId = req.params.jobId;
+        const { isPublished, status } = req.body;
+
+        if (!["Pending", "Approved", "Disapproved"].includes(status)) {
+            return next(createError(400, "Invalid job status"));
+        }
+
+        const missionUpdateData = await Job.findByIdAndUpdate(
+            jobId,
+            {
+                isPublished: isPublished ? true : false,
+                status
+            },
+            { new: true, runValidators: true }
+        );
+
+        res.status(200).json({
+            error: false,
+            success: true,
+            message: "Job updated successfully",
             data: missionUpdateData
         });
     } catch (error: any) {

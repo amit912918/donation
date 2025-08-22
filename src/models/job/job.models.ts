@@ -86,15 +86,13 @@ const JobSchema: Schema = new Schema(
       type: Boolean, 
       default: false 
     },
-    isPublished: { 
-      type: Boolean, 
-      default: true 
-    },
     jobCreatedBy: { 
       type: mongoose.Schema.Types.ObjectId, 
       ref: "User", 
       required: [true, "Job creator (User) is required"] 
     },
+    isPublished: { type: Boolean, default: false },
+    status: { type: String, Enum: ['Pending', 'Approved', 'Disapproved'], default: 'Pending' },
     documents: [
       {
         type: { 

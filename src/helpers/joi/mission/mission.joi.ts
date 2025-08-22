@@ -18,8 +18,6 @@ export const missionSchema = Joi.object({
     "any.required": "At least one photo is required"
   }),
 
-  videoUrl: Joi.string().optional(),
-
   needyPersonAddress: Joi.string().required().messages({
     "any.required": "Needy person address is required",
     "string.empty": "Needy person address cannot be empty"
