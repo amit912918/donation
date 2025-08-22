@@ -230,7 +230,7 @@ export const unpublishedJob = async (req: Request, res: Response, next: NextFunc
 export const getJobWithUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const jobId = req.params.id;
-        let interactionTypes: any = req?.query?.interactionTypes;
+        let { isApplied, isInterested, isContacted}: any = req?.query;
 
         if (!jobId) {
             throw createError(400, "Job ID is required");
@@ -240,8 +240,14 @@ export const getJobWithUser = async (req: Request, res: Response, next: NextFunc
 
         const filter: any = { jobId };
 
-        if (interactionTypes && interactionTypes?.length > 0) {
-            filter.interactionType = { $in: JSON.parse(interactionTypes) };
+        if (isApplied !== '') {
+            filter.isApplied = isApplied;
+        }
+        if (isInterested !== '') {
+            filter.isInterested = isInterested;
+        }
+        if (isContacted !== '') {
+            filter.isContacted = isContacted;
         }
 
         const interactions = await JobInteraction.find(filter).populate("userId", "name email profile");
@@ -343,7 +349,8 @@ export const createOrUpdateJobInteraction = async (req: RequestType, res: Respon
 export const getJobInteractions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const jobId = req.params.id;
-        let interactionTypes: any = req?.query?.interactionTypes;
+        let { isApplied, isInterested, isContacted}: any = req?.query;
+        console.log(req?.query, "req.query");
 
         if (!jobId) {
             throw createError(400, "Job ID is required");
@@ -351,8 +358,14 @@ export const getJobInteractions = async (req: Request, res: Response, next: Next
 
         const filter: any = { jobId };
 
-        if (interactionTypes && interactionTypes?.length > 0) {
-            filter.interactionType = { $in: JSON.parse(interactionTypes) };
+        if (isApplied !== '') {
+            filter.isApplied = isApplied;
+        }
+        if (isInterested !== '') {
+            filter.isInterested = isInterested;
+        }
+        if (isContacted !== '') {
+            filter.isContacted = isContacted;
         }
 
         const interactions = await JobInteraction.find(filter).populate("userId", "name email");
@@ -410,6 +423,8 @@ export const getJobForUser = async (req: RequestType, res: Response, next: NextF
         // 2. Exclude jobs reported by anyone, and not created by current user
         const filterWithExclusion = {
             ...filter,
+            isPublished: true, 
+            status: "Approved",
             jobCreatedBy: { $ne: new mongoose.Types.ObjectId(userId) },
             _id: { $nin: reportedJobs } // exclude reported jobs
         };
