@@ -2,6 +2,7 @@ import { createError } from "@/helpers/common/backend.functions";
 import { RequestType } from "@/helpers/shared/shared.type";
 import User from "@/models/auth/auth.models";
 import Job from "@/models/job/job.models";
+import Biodata from "@/models/matrimony/biodata.models";
 import Mission from "@/models/mission/mission.models";
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
@@ -151,6 +152,32 @@ export const activeJobByAdmin = async (req: RequestType, res: Response, next: Ne
             data: missionUpdateData
         });
     } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 Active job by admin
+export const activeBiodataByAdmin = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const biodataId = req.params.biodataId;
+        const { isVerified } = req.body;
+
+        const biodataUpdateData = await Biodata.findByIdAndUpdate(
+            biodataId,
+            {
+                isVerified: isVerified
+            },
+            { new: true, runValidators: true }
+        );
+
+        res.status(200).json({
+            error: false,
+            success: true,
+            message: "Biodata updated successfully",
+            data: biodataUpdateData
+        });
+    } catch (error: any) {
+        console.log("Error in updata biodata by admin", error);
         next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
