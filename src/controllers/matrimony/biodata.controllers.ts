@@ -351,6 +351,8 @@ export const recommendationBiodata = async (req: RequestType, res: Response, nex
                     as: 'interactionDetails'
                 }
             },
+            { $unwind: { path: "$interactionDetails", preserveNullAndEmptyArrays: true } },
+            { $match: { $or: [ { "interactionDetails.isRequestSend": { $ne: true } }, { interactionDetails: { $eq: null } } ] } },
             {
             $lookup: {
                 from: 'users',
@@ -432,7 +434,11 @@ export const getSendRequest = async (req: RequestType, res: Response, next: Next
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
 
-        const requestGetData = await BiodataInteraction.find({ userId: appUserId, isRequestSend: true, isAccpted: false })
+        const requestGetData = await BiodataInteraction.find({ 
+                userId: appUserId, 
+                isRequestSend: true, 
+                isAccpted: false 
+            })
             .populate("biodataId", "candidate createdAt")
             .skip(skip)
             .limit(limit);
@@ -458,7 +464,11 @@ export const getReceiveRequest = async (req: RequestType, res: Response, next: N
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
 
-        const requestGetData = await BiodataInteraction.find({ biodataCreatedBy: appUserId, isRequestSend: true, isAccpted: false })
+        const requestGetData = await BiodataInteraction.find({ 
+                biodataCreatedBy: appUserId, 
+                isRequestSend: true,
+                isAccpted: false 
+            })
             .populate("biodataId", "candidate createdAt")
             .skip(skip)
             .limit(limit);
@@ -617,7 +627,7 @@ export const biodataInteraction = async (req: RequestType, res: Response, next: 
                 { $set: updateData },
                 { new: true }
             );
-            res.status(200).json({ message: "Interaction updated successfully", interaction: updated });
+            res.status(200).json({ message: `${interactionType || 'updated'} successfully`, interaction: updated });
             return;
         }
 
@@ -634,7 +644,7 @@ export const biodataInteraction = async (req: RequestType, res: Response, next: 
 
         await newInteraction.save();
 
-        res.status(200).json({ message: "Interaction recorded successfully", interaction: newInteraction });
+        res.status(200).json({ message: `${interactionType || 'updated'} successfully`, interaction: newInteraction });
     } catch (error: unknown) {
         console.error("Error in biodata Interaction:", error);
         const err = error instanceof Error ? error.message : "Internal server error";
@@ -645,7 +655,7 @@ export const biodataInteraction = async (req: RequestType, res: Response, next: 
 export const biodataSendAccept = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const userId = req?.payload?.appUserId;
-        const { biodataId, type, message } = req.body;
+        const { biodataId, biodataCreatedById, type, message } = req.body;
 
         if (!biodataId || !userId || !type) {
             throw createError(400, "Missing required fields");
@@ -679,15 +689,15 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
 
         updateData.message = message || "";
 
-        const existingInteraction = await BiodataInteraction.findOne({ biodataId, userId });
+        const existingInteraction = await BiodataInteraction.findOne({ biodataId, biodataCreatedBy: biodataCreatedById });
 
         if (existingInteraction) {
             const updated = await BiodataInteraction.findOneAndUpdate(
-                { biodataId, userId },
+                { biodataId, biodataCreatedBy: biodataCreatedById },
                 { $set: updateData },
                 { new: true }
             );
-            res.status(200).json({ message: "Interaction updated successfully", interaction: updated });
+            res.status(200).json({ message:  `${type || 'updated'} successfully`, interaction: updated });
             return;
         }
 
@@ -706,7 +716,7 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
 
         await newInteraction.save();
 
-        res.status(200).json({ message: "Interaction recorded successfully", interaction: newInteraction });
+        res.status(200).json({ message: `${type || 'updated'}  successfully`, interaction: newInteraction });
     } catch (error: unknown) {
         console.error("Error in biodata send accept:", error);
         const err = error instanceof Error ? error.message : "Internal server error";
