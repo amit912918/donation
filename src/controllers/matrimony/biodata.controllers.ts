@@ -655,7 +655,7 @@ export const biodataInteraction = async (req: RequestType, res: Response, next: 
 export const biodataSendAccept = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const userId = req?.payload?.appUserId;
-        const { biodataId, biodataCreatedById, type, message } = req.body;
+        const { biodataId, biodataCreatedById, senderId, type, message } = req.body;
 
         if (!biodataId || !userId || !type) {
             throw createError(400, "Missing required fields");
@@ -672,14 +672,17 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
         if (!user) throw createError(404, "User not found");
 
         const updateData: any = {};
+        let filter: any = {};
         if (type === "send") {
             updateData.isRequestSend = true;
             updateData.requestSendTime = new Date();
+            filter = { biodataId, biodataCreatedBy: biodataCreatedById, userId };
         }
         if (type === "accept") {
             updateData.isAccpted = true;
             updateData.isRejected = false;
             updateData.requestAcceptTime = new Date();
+            filter = { biodataId, biodataCreatedBy: userId, userId: senderId };
         }
         if (type === "reject") {
             updateData.isRejected = true;
@@ -689,7 +692,7 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
 
         updateData.message = message || "";
 
-        const existingInteraction = await BiodataInteraction.findOne({ biodataId, biodataCreatedBy: biodataCreatedById });
+        const existingInteraction = await BiodataInteraction.findOne(filter);
 
         if (existingInteraction) {
             const updated = await BiodataInteraction.findOneAndUpdate(
