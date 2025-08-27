@@ -47,6 +47,19 @@ app.use("/assets", express.static(path.join(__dirname, "../assets")));
 //   res.status(200).send({ message: "Server is running" })
 // });
 
+// 🔹 Global logger middleware
+app.use((req, res, next) => {
+  if (req.method === "POST") {
+    console.log("---- Incoming POST Request ----");
+    console.log("URL:", req?.originalUrl);
+    console.log("Query Params:", req?.query);
+    console.log("Route Params:", req?.params);
+    console.log("Body:", req?.body);
+    console.log("------------------------------");
+  }
+  next();
+});
+
 app.use('/v1', v1);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
