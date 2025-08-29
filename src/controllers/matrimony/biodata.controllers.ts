@@ -223,11 +223,11 @@ export const getNewlyJoined = async (req: RequestType, res: Response, next: Next
             as: 'userInteractions'
             }
         },
-        {
-            $match: {
-            userInteractions: { $eq: [] } // Filter out biodatas where interactions already exist
-            }
-        },
+        // {
+        //     $match: {
+        //     userInteractions: { $eq: [] } // Filter out biodatas where interactions already exist
+        //     }
+        // },
         {
             $sort: { createdAt: -1 }
         },
@@ -467,6 +467,7 @@ export const getReceiveRequest = async (req: RequestType, res: Response, next: N
         const requestGetData = await BiodataInteraction.find({ 
                 biodataCreatedBy: appUserId, 
                 isRequestSend: true,
+                isRejected: false,
                 isAccpted: false 
             })
             .populate("biodataId", "candidate createdAt")
@@ -688,6 +689,7 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
             updateData.isRejected = true;
             updateData.isAccpted = false;
             updateData.requestRejectTime = new Date();
+            filter = { biodataId, biodataCreatedBy: biodataCreatedById, userId };
         }
 
         updateData.message = message || "";
