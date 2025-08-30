@@ -392,32 +392,24 @@ export const getAllBioDataMatch = async (req: RequestType, res: Response, next: 
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
 
-        const userBioData = await Biodata.findOne({ profileCreatedById: appUserId }).select('gotraDetails');
-        if(!userBioData) {
-            res.status(200).json({
-                success: true,
-                error: false,
-                message: "Complete your profile to show biodata",
-                count: 0,
-                data: []
-            });
-            return;
-        }
-
-        const recommendationData = await Biodata.find({ 
-                profileCreatedById: { $ne: req?.payload?.appUserId }, 
-                gotraDetails: userBioData?.gotraDetails,
-                bicholiyaVerificationStatus: 'approved',
-                adminVerificationStatus: 'approved'
-            })
-            .skip(skip)
-            .limit(limit);
+        const match_biodata = await BiodataInteraction.find({
+        isRequestSend: true,
+        isAccpted: true,
+        $or: [
+            { biodataCreatedBy: appUserId },
+            { userId: appUserId }
+        ]
+        })
+        .populate("biodataId")                // full biodata details
+        .populate("biodataCreatedBy")         // user details
+        .populate("userId")                   // user details
+        .exec();
 
         res.status(200).json({
             success: true,
             error: false,
-            count: recommendationData.length,
-            data: recommendationData
+            count: match_biodata.length,
+            data: match_biodata
         });
     } catch (error: unknown) {
         console.error("Error in get newly joined user", error);
@@ -471,8 +463,14 @@ export const getReceiveRequest = async (req: RequestType, res: Response, next: N
                 isAccpted: false 
             })
             .populate("biodataId", "candidate createdAt")
+            .populate("userId")
             .skip(skip)
             .limit(limit);
+
+//             .populate("biodataId")                // full biodata details
+// .populate("biodataCreatedBy")         // user details
+// .populate("userId")                   // user details
+// .exec();
 
         res.status(200).json({
             success: true,
