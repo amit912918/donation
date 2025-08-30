@@ -184,7 +184,7 @@ export const updateBioDataStatus = async (req: RequestType, res: Response, next:
         if (!user) throw createError(404, "User not found");
 
         const updateData: any = {
-            status: type,
+            bicholiyaVerificationStatus: type,
             statusUpdateTime: new Date(),
             message: message || ""
         };

@@ -9,6 +9,7 @@ import { sendSms } from "@/helpers/service/communication/sms";
 import { sendEmail } from "@/helpers/service/communication/email";
 import { RequestType } from "@/helpers/shared/shared.type";
 import { Country, State, City } from 'country-state-city';
+import Biodata from "@/models/matrimony/biodata.models";
 
 /**
  * @desc User Login
@@ -149,7 +150,7 @@ export const registerUser = async (req: RequestType, res: Response, next: NextFu
     await user.save();
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user?.role);
 
     // Return success response
     res.status(200).json({
@@ -258,9 +259,9 @@ export const updateUserProfileImage = async (req: RequestType, res: Response, ne
 export const getUserProfile = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.payload?.appUserId;
-    console.log(userId, "userId");
 
     const user = await User.findById(userId).select('-password');
+    const biodata_info = await Biodata.findOne({ profileCreatedById: userId });
     if (!user) {
       return next(createError(404, 'User not found'));
     }
@@ -268,7 +269,8 @@ export const getUserProfile = async (req: RequestType, res: Response, next: Next
     res.status(200).json({
       error: false,
       message: "Profile get successfully!",
-      user
+      user,
+      biodata_info
     });
   } catch (error: any) {
     console.error('Error fetching user profile:', error);
@@ -350,7 +352,7 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
 
         existingUser = user;
       }
-      const token = generateToken(existingUser._id);
+      const token = generateToken(existingUser._id, existingUser?.role);
       res.status(200).json({ message: 'OTP verified successfully', token, user: existingUser, existing });
       return;
     }
@@ -358,7 +360,7 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
       existingUser = await User.findOne({ mobile: contact });
       res.status(200).json({
         message: 'OTP verified successfully',
-        token: existingUser ? generateToken(existingUser._id) : null,
+        token: existingUser ? generateToken(existingUser._id, existingUser?.role) : null,
         user: existingUser ? existingUser : null,
         existing: existingUser ? true : false
       });
