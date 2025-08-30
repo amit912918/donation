@@ -11,8 +11,12 @@ if (!JWT_SECRET) {
 }
 
 // Function to generate JWT Token
-export const generateToken = (id: unknown): string => {
-  return jwt.sign({ payloadData: { appUserId: id } }, JWT_SECRET, {
+export const generateToken = (id: unknown, role: unknown): string => {
+  if(!role) {
+    role = 'user'
+  }
+  console.log(role, "role");
+  return jwt.sign({ payloadData: { appUserId: id, role: role } }, JWT_SECRET, {
     expiresIn: '10d',
   });
 };

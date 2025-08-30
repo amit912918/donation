@@ -200,8 +200,8 @@ export const getNewlyJoined = async (req: RequestType, res: Response, next: Next
         {
             $match: {
                 profileCreatedById: { $ne: new mongoose.Types.ObjectId(req?.payload?.appUserId) },
-                status: 'approved',
-                isVerified: true
+                bicholiyaVerificationStatus: 'approved',
+                adminVerificationStatus: 'approved'
             }
         },
         {
@@ -223,11 +223,11 @@ export const getNewlyJoined = async (req: RequestType, res: Response, next: Next
             as: 'userInteractions'
             }
         },
-        // {
-        //     $match: {
-        //     userInteractions: { $eq: [] } // Filter out biodatas where interactions already exist
-        //     }
-        // },
+        {
+            $match: {
+            userInteractions: { $eq: [] } // Filter out biodatas where interactions already exist
+            }
+        },
         {
             $sort: { createdAt: -1 }
         },
@@ -248,8 +248,8 @@ export const getNewlyJoined = async (req: RequestType, res: Response, next: Next
         {
             $match: {
                 profileCreatedById: { $ne: new mongoose.Types.ObjectId(req?.payload?.appUserId) },
-                status: 'approved',
-                isVerified: true
+                bicholiyaVerificationStatus: 'approved',
+                adminVerificationStatus: 'approved'
             }
         },
         {
@@ -321,7 +321,7 @@ export const recommendationBiodata = async (req: RequestType, res: Response, nex
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
 
-        const userBioData = await Biodata.findOne({ profileCreatedById: appUserId, status: 'approved' }).select('gotraDetails');
+        const userBioData = await Biodata.findOne({ profileCreatedById: appUserId, bicholiyaVerificationStatus: 'approved' }).select('gotraDetails');
 
         if(!userBioData) {
             res.status(200).json({
@@ -339,8 +339,8 @@ export const recommendationBiodata = async (req: RequestType, res: Response, nex
                 $match: { 
                     profileCreatedById: { $ne: new mongoose.Types.ObjectId(req?.payload?.appUserId) },
                     gotraDetails: { $ne: userBioData?.gotraDetails },
-                    status: 'approved',
-                    isVerified: true
+                    bicholiyaVerificationStatus: 'approved',
+                    adminVerificationStatus: 'approved'
                 }
             },
             {
@@ -407,8 +407,8 @@ export const getAllBioDataMatch = async (req: RequestType, res: Response, next: 
         const recommendationData = await Biodata.find({ 
                 profileCreatedById: { $ne: req?.payload?.appUserId }, 
                 gotraDetails: userBioData?.gotraDetails,
-                status: 'approved',
-                isVerified: true
+                bicholiyaVerificationStatus: 'approved',
+                adminVerificationStatus: 'approved'
             })
             .skip(skip)
             .limit(limit);

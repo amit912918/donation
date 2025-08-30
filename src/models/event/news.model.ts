@@ -16,6 +16,7 @@ export interface INews extends Document {
     isPublished: boolean;
     publishedById: mongoose.Types.ObjectId;
     publishedAt?: Date;
+    isVerified?: boolean;
     createdAt: Date;
     updatedAt: Date;
     likes: mongoose.Types.ObjectId[];
@@ -82,6 +83,7 @@ const NewsSchema: Schema = new Schema<INews>(
         publishedAt: {
             type: Date,
         },
+        isVerified: { type: Boolean, default: false }, // verified by admin
         likes: [
             {
                 type: mongoose.Schema.Types.ObjectId,

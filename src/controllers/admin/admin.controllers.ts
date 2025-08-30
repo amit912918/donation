@@ -27,6 +27,25 @@ export const makeRemoveMentor = async (req: RequestType, res: Response, next: Ne
     }
 };
 
+// 📌 Make remove admin
+export const makeRemoveAdmin = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const updateUserProfileData = await User.findByIdAndUpdate(
+            req.params.userId,
+            { role: 'admin' },
+            { new: true, runValidators: true }
+        );
+        res.status(200).json({
+            error: false,
+            success: true,
+            message: "User detail updated successfully",
+            data: updateUserProfileData
+        });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
 // 📌 Make remove bicholiya
 export const makeRemoveBicholiya = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -160,12 +179,12 @@ export const activeJobByAdmin = async (req: RequestType, res: Response, next: Ne
 export const activeBiodataByAdmin = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const biodataId = req.params.biodataId;
-        const { isVerified } = req.body;
+        const { adminVerificationStatus } = req.body;
 
         const biodataUpdateData = await Biodata.findByIdAndUpdate(
             biodataId,
             {
-                isVerified: isVerified
+                adminVerificationStatus: adminVerificationStatus
             },
             { new: true, runValidators: true }
         );

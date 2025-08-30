@@ -12,6 +12,7 @@ export interface IUser extends Document {
     resetPasswordToken?: string;
     resetPasswordExpire?: Date;
     confirmed: boolean;
+    role: string;
     isBicholiya: boolean;
     isMentor: boolean;
     agreeTermConditions: boolean;
@@ -32,6 +33,11 @@ const userSchema = new Schema<IUser>(
         resetPasswordToken: { type: String },
         resetPasswordExpire: { type: Date },
         confirmed: { type: Boolean, default: true },
+        role: {
+            type: String,
+            enum: ['user', 'admin', 'bicholiya'],
+            default: 'user',
+        },
         isBicholiya: { type: Boolean, default: false },
         isMentor: { type: Boolean, default: false },
         agreeTermConditions: { type: Boolean, default: true },

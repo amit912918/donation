@@ -97,8 +97,8 @@ export interface IBiodata extends Document {
         additionalInfo?: string;
     };
     paymentStatus?: string;
-    isVerified?: boolean;
-    status?: string;
+    adminVerificationStatus?: string;
+    bicholiyaVerificationStatus?: string;
     statusUpdateTime?: Date;
     createdAt?: Date;
     updatedAt?: Date;
@@ -143,8 +143,8 @@ const BiodataSchema: Schema = new Schema<IBiodata>({
         additionalInfo: { type: String },
     },
     paymentStatus: { type: String, ENUM: ['pending', 'rejected', 'completed'], default: 'pending' },
-    isVerified: { type: Boolean, default: false }, // verified by admin
-    status: { type: String, enum: ['approved', 'rejected', 'pending'], default: 'pending' }, // maintained by bicholiya
+    adminVerificationStatus: { type: String, enum: ['approved', 'rejected', 'pending'], default: 'approved' }, // verified by admin
+    bicholiyaVerificationStatus: { type: String, enum: ['approved', 'rejected', 'pending'], default: 'approved' }, // maintained by bicholiya
     statusUpdateTime: {
             type: Date,
             default: ""
@@ -237,8 +237,8 @@ BiodataSchema.pre<IBiodata>('save', function (next) {
         allFieldsFilled = false;
     }
 
-    biodata.isVerified = allFieldsFilled;
-    console.log(allFieldsFilled, "allFieldsFilled");
+    // biodata.isVerified = allFieldsFilled;
+    // console.log(allFieldsFilled, "allFieldsFilled");
     next();
 });
 
