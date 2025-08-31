@@ -349,7 +349,12 @@ export const getMissionById = async (req: Request, res: Response, next: NextFunc
 // 📌 Get latest mission
 export const getLatestMission = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
-        const mission = await Mission.find({ missionCreatedBy: { $ne: req?.payload?.appUserId } }).sort({ createdAt: -1 }).limit(5);
+        const mission = await Mission.find({
+             missionCreatedBy: { $ne: req?.payload?.appUserId },
+             isPublished: true,
+             status: "Approved"
+            })
+            .sort({ createdAt: -1 }).limit(5);
         
         res.status(200).json(mission);
     } catch (error: any) {
@@ -406,7 +411,10 @@ export const getMissionCreatedByUser = async (req: RequestType, res: Response, n
 // 📌 Get mission analytics data
 export const getMissionAnalyticsData = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
-        const active_mission_count = await Mission.countDocuments({ isActive: true});
+        const active_mission_count = await Mission.countDocuments({ 
+            isPublished: true,
+            status: "Approved"
+         });
 
         const distinctUser = await Donation.distinct("user");
         const total_donars = distinctUser.length;
