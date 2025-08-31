@@ -352,7 +352,15 @@ export const recommendationBiodata = async (req: RequestType, res: Response, nex
                 }
             },
             { $unwind: { path: "$interactionDetails", preserveNullAndEmptyArrays: true } },
-            { $match: { $or: [ { "interactionDetails.isRequestSend": { $ne: true } }, { interactionDetails: { $eq: null } } ] } },
+            {
+            $match: {
+                $or: [
+                { "interactionDetails.isRequestSend": { $ne: true } },
+                { interactionDetails: { $eq: null } }
+                ],
+                "interactionDetails.userId": new mongoose.Types.ObjectId(req?.payload?.appUserId)
+              }
+            },
             {
             $lookup: {
                 from: 'users',
