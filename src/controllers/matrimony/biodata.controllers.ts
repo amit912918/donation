@@ -431,7 +431,9 @@ export const getSendRequest = async (req: RequestType, res: Response, next: Next
                 isRequestSend: true, 
                 isAccpted: false 
             })
-            .populate("biodataId", "candidate createdAt")
+            .populate("biodataId")                // full biodata details
+            .populate("biodataCreatedBy")         // user details
+            .populate("userId")                   // user details
             .skip(skip)
             .limit(limit);
 
@@ -462,8 +464,9 @@ export const getReceiveRequest = async (req: RequestType, res: Response, next: N
                 isRejected: false,
                 isAccpted: false 
             })
-            .populate("biodataId", "candidate createdAt")
-            .populate("userId")
+            .populate("biodataId")                // full biodata details
+            .populate("biodataCreatedBy")         // user details
+            .populate("userId")                   // user details
             .skip(skip)
             .limit(limit);
 

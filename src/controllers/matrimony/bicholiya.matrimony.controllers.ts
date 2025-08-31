@@ -24,20 +24,20 @@ export const getBicholiyaList = async (req: Request, res: Response, next: NextFu
             },
             {
                 $lookup: {
-                    from: "users", // collection name (must match the collection name in MongoDB, usually lowercase plural of model)
+                    from: "biodatas", // collection name (must match the collection name in MongoDB, usually lowercase plural of model)
                     localField: "_id",
                     foreignField: "BicholiyaId",
-                    as: "missions"
+                    as: "biodata"
                 }
             },
             {
                 $addFields: {
-                    mission_count: { $size: "$missions" }
+                    biodata_manage: { $size: "$biodata" }
                 }
             },
             {
                 $project: {
-                    missions: 0 // remove the full array, keep only count
+                    biodata: 0 // remove the full array, keep only count
                 }
             },
             {
@@ -253,9 +253,9 @@ export const getBiodataStatusWise = async (req: RequestType, res: Response, next
             .limit(limitNumber)
             .sort({ createdAt: -1 });
 
-        if (!biodata || biodata.length === 0) {
-            throw createError(404, "No biodata found");
-        }
+        // if (!biodata || biodata.length === 0) {
+        //     throw createError(404, "No biodata found");
+        // }
 
         res.status(200).json({
             error: false,
@@ -267,7 +267,7 @@ export const getBiodataStatusWise = async (req: RequestType, res: Response, next
                 limit: limitNumber,
                 totalPages: Math.ceil(totalCount / limitNumber),
             },
-            data: biodata,
+            data: biodata || [],
         });
     } catch (error: unknown) {
         console.error("Error in biodata status wise search:", error);
