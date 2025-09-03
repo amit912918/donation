@@ -505,7 +505,9 @@ export const getFavouristList = async (req: RequestType, res: Response, next: Ne
         const skip = (page - 1) * limit;
 
         const requestGetData = await BiodataInteraction.find({ userId: appUserId, addingToFavourite: true })
-            .populate("biodataId", "candidate createdAt")
+            .populate("biodataId")                // full biodata details
+            .populate("biodataCreatedBy")         // user details
+            .populate("userId")  
             .skip(skip)
             .limit(limit);
 

@@ -3,7 +3,7 @@ import User from "@/models/auth/auth.models";
 import Profile from "@/models/auth/profile.models";
 import { registerSchema, updateProfileSchema } from "@/helpers/joi/auth/auth.joi";
 import { RegisterUserRequest } from "@/helpers/interface/auth/auth.interface";
-import { createError, generateOtp, generateToken, validateContact } from "@/helpers/common/backend.functions";
+import { createError, generateOtp, generateToken, getCoordinates, validateContact } from "@/helpers/common/backend.functions";
 import Otp from "@/models/auth/otp.models";
 import { sendSms } from "@/helpers/service/communication/sms";
 import { sendEmail } from "@/helpers/service/communication/email";
@@ -126,6 +126,8 @@ export const registerUser = async (req: RequestType, res: Response, next: NextFu
       return next(createError(400, "User with this email or mobile already exists."));
     }
 
+    const coordinate: any = await getCoordinates(city, state, country);
+
     // Create user profile
     const profileData: any = {
       gender: gender,
@@ -133,6 +135,10 @@ export const registerUser = async (req: RequestType, res: Response, next: NextFu
       city: city,
       state: state,
       country: country,
+      location: {
+        type: "Point",
+        coordinates: [coordinate?.latitude, coordinate?.longitude],
+      },
       address: address,
       Language: language,
       image: `/assets/profile/images-1751822555415-776740214.png`,

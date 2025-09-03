@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 // ✅ Donation Interface & Schema
 interface IGender extends Document {
-    relationName: string;
+    genderName: string;
     description?: string;
 }
 

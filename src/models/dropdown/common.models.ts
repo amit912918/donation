@@ -2,14 +2,15 @@ import mongoose, { Schema, Document } from "mongoose";
 
 // ✅ Donation Interface & Schema
 interface ICommonType extends Document {
-    relationName: string;
+    name: string;
     description?: string;
+    category?: string;
 }
 
 const CommonTypeSchema: Schema = new Schema({
     name: { type: String, required: true },
     description: { type: String, required: true },
-    category: { type: String, Enum: ['familytype'], default: 'familytype', required: true }
+    category: { type: String, Enum: ['familytype', 'incometype'], default: 'familytype', required: true }
 }, { timestamps: true });
 
 // ✅ Correct Export
