@@ -1,4 +1,4 @@
-import { createError } from "@/helpers/common/backend.functions";
+import { createError, findNearestUsers } from "@/helpers/common/backend.functions";
 import { RequestType } from "@/helpers/shared/shared.type";
 import User from "@/models/auth/auth.models";
 import BiodataInteraction from "@/models/matrimony/biodata.interaction.models";
@@ -90,7 +90,9 @@ export const getAreawiseCandidateForBicholiya = async (req: RequestType, res: Re
     }
 
     const query: any = {
-      'city': bicholiya_city
+      'city': bicholiya_city,
+      adminVerificationStatus: 'approved',
+      bicholiyaVerificationStatus: 'approved'
     };
 
     if (search !== "" && search !== undefined && search !== null) {
@@ -122,7 +124,10 @@ export const getAreawiseCandidateForBicholiya = async (req: RequestType, res: Re
 
 export const getAreaWiseBicholiyaForCandidate = async (req: RequestType, res: Response, next: NextFunction) => {
   try {
-    const { page = 1, limit = 10, user_city, search = '' } = req.query;
+    const { page = 1, limit = 10, user_city, user_state, user_country, search = '' } = req.query;
+    // const user = await findNearestUsers(28.5706333, 77.3272147);
+    // console.log(user, "user");
+    // return;
 
     if (!user_city) {
       return next(createError(400, 'City not found in user profile'));
@@ -130,6 +135,7 @@ export const getAreaWiseBicholiyaForCandidate = async (req: RequestType, res: Re
 
     const query: any = {
      _id: { $ne: new mongoose.Types.ObjectId(req?.payload?.appUserId) },
+     isBicholiya: true,
     'profile.city': user_city
     };
 
@@ -143,10 +149,55 @@ export const getAreaWiseBicholiyaForCandidate = async (req: RequestType, res: Re
     const pageSize = Number(limit) || 10;
     const skip = (pageNumber - 1) * pageSize;
 
-    const [user_list, total] = await Promise.all([
-    User.find(query).skip(skip).limit(pageSize),
-    User.countDocuments(query),
+    let [user_list = [], total = 0] = await Promise.all([
+        User.find(query).skip(skip).limit(pageSize),
+        User.countDocuments(query),
     ]);
+
+    // include state wise bicholiya also
+    if(user_state) {
+        const state_query: any = {
+        _id: { $ne: new mongoose.Types.ObjectId(req?.payload?.appUserId) },
+        isBicholiya: true,
+        'profile.city': { $ne: user_city },
+        'profile.state': user_state
+        };
+
+        // Apply search filter if provided
+        if (search) {
+        state_query['profile.name'] = { $regex: search, $options: 'i' };
+        }
+
+        const [state_user_list = [], state_total = 0] = await Promise.all([
+            User.find(state_query).skip(skip).limit(pageSize),
+            User.countDocuments(state_query),
+        ]);
+        user_list = user_list.concat(state_user_list);
+        total += state_total;
+    }
+
+    // include country wise bicholiya also
+    if(user_country) {
+        const country_query: any = {
+        _id: { $ne: new mongoose.Types.ObjectId(req?.payload?.appUserId) },
+        isBicholiya: true,
+        'profile.city': { $ne: user_city },
+        'profile.state': { $ne: user_state },
+        'profile.country': user_country
+        };
+
+        // Apply search filter if provided
+        if (search) {
+        country_query['profile.name'] = { $regex: search, $options: 'i' };
+        }
+
+        const [country_user_list = [], country_total = 0] = await Promise.all([
+            User.find(country_query).skip(skip).limit(pageSize),
+            User.countDocuments(country_query),
+        ]);
+        user_list = user_list.concat(country_user_list);
+        total += country_total;
+    }
 
     res.status(200).json({
       success: true,

@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 // ✅ Donation Interface & Schema
 interface IMarital extends Document {
-    relationName: string;
+    maritalName: string;
     description?: string;
 }
 

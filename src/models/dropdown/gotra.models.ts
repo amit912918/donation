@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 // ✅ Donation Interface & Schema
 interface IGotra extends Document {
-    relationName: string;
+    gotraName: string;
     description?: string;
 }
 

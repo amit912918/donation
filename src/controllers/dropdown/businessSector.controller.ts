@@ -7,7 +7,7 @@ import { BusinessSector } from "@/models/dropdown/business.models";
 export const createBusinessSector = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
         const { name, category, businessTypeId } = req.body;
-        if (!name || !category) throw createError(400, "Name and Category are required");
+        if (!name || !category || !businessTypeId) throw createError(400, "Name, Category and BusinessTypeId are required");
 
         const sector = new BusinessSector({ name, category, businessTypeId });
         await sector.save();

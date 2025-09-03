@@ -1,10 +1,12 @@
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import crypto from "crypto";
+import User from '@/models/auth/auth.models';
 
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_ACCESS_TOKEN_SECRET as string;
+const LOCATION_URL = process.env.LOCATION_URL as string;
 
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET is not defined in environment variables');
@@ -71,3 +73,36 @@ export function isBiodataComplete(biodata: any): boolean {
 
   return isBasicFilled && isGotraFilled && isFamilyFilled && isAnyCandidateComplete;
 }
+
+export const getCoordinates = async(city: String, state: String, country: String) => {
+  const query = `${city}, ${state}, ${country}`;
+  const url = `${LOCATION_URL}/search?format=json&q=${encodeURIComponent(query)}`;
+
+  const response = await fetch(url);
+  const data = await response.json();
+
+  if (data.length > 0) {
+    return {
+      latitude: parseFloat(data[0].lat),
+      longitude: parseFloat(data[0].lon)
+    };
+  }
+  return null;
+}
+
+export const findNearestUsers = async(longitude: number, latitude: number) => {
+  const users = await User.find({
+  "profile.location": {
+    $near: {
+      $geometry: {
+        type: "Point",
+        coordinates: [longitude, latitude],
+      },
+      $maxDistance: 50000, // 50 km
+    },
+  },
+});
+
+  return users;
+}
+
