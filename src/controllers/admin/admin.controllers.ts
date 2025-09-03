@@ -184,7 +184,8 @@ export const activeBiodataByAdmin = async (req: RequestType, res: Response, next
         const biodataUpdateData = await Biodata.findByIdAndUpdate(
             biodataId,
             {
-                adminVerificationStatus: adminVerificationStatus
+                adminVerificationStatus: adminVerificationStatus,
+                statusUpdateTime: new Date()
             },
             { new: true, runValidators: true }
         );
