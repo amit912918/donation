@@ -1,4 +1,4 @@
-import { createError, isBiodataComplete } from "@/helpers/common/backend.functions";
+import { createError, isBiodataComplete, validateBicholiyaData } from "@/helpers/common/backend.functions";
 import { RequestType } from "@/helpers/shared/shared.type";
 import User from "@/models/auth/auth.models";
 import BiodataInteraction from "@/models/matrimony/biodata.interaction.models";
@@ -115,8 +115,9 @@ export const getBiodataByUserId = async (req: RequestType, res: Response, next: 
         const biodata = await Biodata.find({ profileCreatedById: req.payload?.appUserId });
 
         res.status(200).json({ success: true, data: biodata });
-    } catch (error) {
-        next(error);
+    } catch (error: any) {
+        console.log("Error in get biodata by user id", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -128,8 +129,9 @@ export const updateBiodata = async (req: Request, res: Response, next: NextFunct
             return;
         }
         res.status(200).json({ success: true, data: updatedBiodata });
-    } catch (error) {
-        next(error);
+    } catch (error: any) {
+        console.log("Error in update biodata", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -141,8 +143,9 @@ export const deleteBiodata = async (req: Request, res: Response, next: NextFunct
             return;
         }
         res.status(200).json({ success: true, message: "Biodata deleted successfully" });
-    } catch (error) {
-        next(error);
+    } catch (error: any) {
+        console.log("Error in delete biodata", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -165,10 +168,9 @@ export const getBicholiyaList = async (req: Request, res: Response, next: NextFu
             count: bicholiyaDatas.length,
             data: bicholiyaDatas
         });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error in get bicholiya list", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -183,10 +185,9 @@ export const getUserBiodata = async (req: RequestType, res: Response, next: Next
             error: false,
             data: biodata
         });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error in get user biodata", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -288,10 +289,9 @@ export const getNewlyJoined = async (req: RequestType, res: Response, next: Next
             count: newlyJoinedCount[0]?.total || 0,
             data: newlyJoinedData
         });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error in get newly joined user", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -385,10 +385,9 @@ export const recommendationBiodata = async (req: RequestType, res: Response, nex
             count: allTopMatchData.length,
             data: allTopMatchData
         });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error in get all bio data match", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -419,10 +418,9 @@ export const getAllBioDataMatch = async (req: RequestType, res: Response, next: 
             count: match_biodata.length,
             data: match_biodata
         });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error in get newly joined user", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -451,10 +449,9 @@ export const getSendRequest = async (req: RequestType, res: Response, next: Next
             count: requestGetData.length,
             data: requestGetData
         });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error in send request", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -489,10 +486,9 @@ export const getReceiveRequest = async (req: RequestType, res: Response, next: N
             count: requestGetData.length,
             data: requestGetData
         });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error in receive request", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -517,10 +513,9 @@ export const getFavouristList = async (req: RequestType, res: Response, next: Ne
             count: requestGetData.length,
             data: requestGetData
         });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error in get favourite list", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -546,10 +541,9 @@ export const getBiodataInteraction = async (req: RequestType, res: Response, nex
             count: interactions.length || 0,
             data: interactions
         });
-    } catch (error: unknown) {
-        console.error("Error in get favourite list", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+    } catch (error: any) {
+        console.error("Error in get biodata interaction", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -570,10 +564,9 @@ export const getBiodataInteractionByUser = async (req: RequestType, res: Respons
             count: interactions.length || 0,
             data: interactions
         });
-    } catch (error: unknown) {
-        console.error("Error in get favourite list", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+    } catch (error: any) {
+        console.error("Error in get biodata interaction by user", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -594,10 +587,9 @@ export const getAllBiodataInteraction = async (req: RequestType, res: Response, 
             count: interactions.length || 0,
             data: interactions
         });
-    } catch (error: unknown) {
-        console.error("Error in get favourite list", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+    } catch (error: any) {
+        console.error("Error in get all biodata interaction", error);
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -647,9 +639,9 @@ export const biodataInteraction = async (req: RequestType, res: Response, next: 
             biodataId,
             biodataCreatedBy: biodata?.profileCreatedById,
             userId,
-            isCheckout: interactionType === "checkout",
+            isCheckout: interactionType === "checkout" ? true : false,
             isCheckoutTime: interactionType === "checkout" ? new Date() : "",
-            addingToFavourite: interactionType === "addToFavourite",
+            addingToFavourite: interactionType === "addToFavourite" ? true : false,
             addingToFavouriteTime: interactionType === "addToFavourite" ? new Date() : "",
             message: message || "",
         });
@@ -657,10 +649,9 @@ export const biodataInteraction = async (req: RequestType, res: Response, next: 
         await newInteraction.save();
 
         res.status(200).json({ message: `${interactionType || 'updated'} successfully`, interaction: newInteraction });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error in biodata Interaction:", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -721,9 +712,9 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
             biodataId,
             biodataCreatedBy: biodata?.profileCreatedById,
             userId,
-            isRequestSend: type === "send",
-            isAccpted: type === "accept",
-            isRejected: type === "reject",
+            isRequestSend: type === "send" ? true : false,
+            isAccpted: type === "accept" ? true : false,
+            isRejected: type === "reject" ? true : false,
             requestSendTime: type === "send" ? new Date() : "",
             requestAcceptTime: type === "accept" ? new Date() : "",
             requestRejectTime: type === "reject" ? new Date() : "",
@@ -733,10 +724,9 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
         await newInteraction.save();
 
         res.status(200).json({ message: `${type || 'updated'}  successfully`, interaction: newInteraction });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error in biodata send accept:", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -763,10 +753,12 @@ export const biodataCancelFavourite_Remove = async (req: RequestType, res: Respo
         if (type === "cancel") {
             updateData.isRequestSend = false;
             updateData.requestSendTime = "";
+            updateData.requestCancelTime = new Date();
         }
         if (type === "remove_from_favourite") {
             updateData.addingToFavourite = false;
             updateData.addingToFavouriteTime = "";
+            updateData.requestRemoveFromFavouriteTime = new Date();
         }
 
         updateData.message = message || "";
@@ -784,10 +776,9 @@ export const biodataCancelFavourite_Remove = async (req: RequestType, res: Respo
         );
 
         res.status(200).json({ message: "Interaction updated successfully", interaction: updated });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error in biodata cancel remove and remove_from_favourite:", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -835,30 +826,29 @@ export const biodataPayment = async (
             message: "Biodata payment status updated successfully",
             data: updated
         });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error in biodata payment update:", error);
-        next(error); // let error middleware handle it
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
-
 
 export const checkBiodataCompleted = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
 
-        const biodata = await Biodata.findOne({ profileCreatedById: req?.payload?.appUserId });
+        const biodata: any = await Biodata.findOne({ profileCreatedById: req?.payload?.appUserId });
 
-        const isComplete = isBiodataComplete(biodata);
+        // const isComplete = isBiodataComplete(biodata);
+        const isComplete = await validateBicholiyaData(biodata);
 
         res.status(200).json({
             error: false,
             success: true,
-            message: "Interaction updated successfully",
+            message: "Biodata verify successfully",
             isComplete
         });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error in biodata cancel remove and remove_from_favourite:", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };
 
@@ -881,9 +871,8 @@ export const biodataVerificationByAdmin = async (req: RequestType, res: Response
             message: `Biodata ${verified ? "verified" : "unverified"} successfully`,
             data: { id: biodataId, verified }
         });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error in biodata cancel remove and remove_from_favourite:", error);
-        const err = error instanceof Error ? error.message : "Internal server error";
-        next(createError(500, err));
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
     }
 };

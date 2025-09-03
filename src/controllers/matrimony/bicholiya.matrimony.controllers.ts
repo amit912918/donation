@@ -91,8 +91,7 @@ export const getAreawiseCandidateForBicholiya = async (req: RequestType, res: Re
 
     const query: any = {
       'city': bicholiya_city,
-      adminVerificationStatus: 'approved',
-      bicholiyaVerificationStatus: 'approved'
+      adminVerificationStatus: 'approved'
     };
 
     if (search !== "" && search !== undefined && search !== null) {
@@ -268,22 +267,21 @@ export const updateBioDataStatus = async (req: RequestType, res: Response, next:
 export const getBiodataStatusWise = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { status, search, page = "1", limit = "10" } = req.query;
-        console.log(req.query);
+        const bicholiyaId = req?.payload?.appUserId;
 
-        // Pagination values
         const pageNumber = parseInt(page as string, 10);
         const limitNumber = parseInt(limit as string, 10);
         const skip = (pageNumber - 1) * limitNumber;
 
-        // Build query condition
         let query: any = {};
 
-        // status filter
         if (status) {
             if (!["approved", "rejected", "pending"].includes(status as string)) {
                 throw createError(400, "Invalid status");
             }
-            query.status = status;
+            query.adminVerificationStatus = "approved";
+            query.bicholiyaVerificationStatus = status;
+            query.BicholiyaId = new mongoose.Types.ObjectId(bicholiyaId);
         }
 
         // search filter (case insensitive regex)
@@ -295,18 +293,12 @@ export const getBiodataStatusWise = async (req: RequestType, res: Response, next
             ];
         }
 
-        // get total count (for pagination metadata)
         const totalCount = await Biodata.countDocuments(query);
 
-        // fetch paginated result
         const biodata = await Biodata.find(query)
             .skip(skip)
             .limit(limitNumber)
             .sort({ createdAt: -1 });
-
-        // if (!biodata || biodata.length === 0) {
-        //     throw createError(404, "No biodata found");
-        // }
 
         res.status(200).json({
             error: false,

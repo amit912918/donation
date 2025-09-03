@@ -106,3 +106,131 @@ export const findNearestUsers = async(longitude: number, latitude: number) => {
   return users;
 }
 
+type Candidate = {
+  name: string;
+  nickName: string;
+  dob: string;
+  address: string;
+  city: string;
+  mobile: string;
+  qualification: string;
+  college: string;
+  occupation: string;
+  jobDetail: any;
+  language: string;
+  serviceTypes: any[];
+  maritalStatus: string;
+  assetInfo: string;
+  drink: string;
+  smoke: string;
+  food: string;
+  photos: any[];
+  _id: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type BicholiyaData = {
+  gotraDetails: {
+    selfGotra: string;
+    maaGotra: string;
+    dadiGotra: string;
+    naniGotra: string;
+    additionalGotra: { stepMotherGotra: string };
+  };
+  familyDetails: {
+    fatherName: string;
+    fatherOccupation: string;
+    motherName: string;
+    motherOccupation: string;
+    grandfatherName: string;
+    grandfatherOccupation: string;
+    siblings: any[];
+    familyLivingIn: string;
+    additionalInfo: string;
+  };
+  _id: string;
+  profileCreatedById: string;
+  profileCreatedBy: string;
+  relationWithCandiate: string;
+  profileCount: string;
+  gender: string;
+  contact: string;
+  state: string;
+  city: string;
+  BicholiyaId: string;
+  paymentStatus: string;
+  adminVerificationStatus: string;
+  bicholiyaVerificationStatus: string;
+  candidate: Candidate[];
+  createdAt: Date;
+  updatedAt: Date;
+  __v: number;
+};
+
+export async function validateBicholiyaData(data: Partial<BicholiyaData>): Promise<boolean> {
+  const requiredFields: (keyof BicholiyaData)[] = [
+    "_id",
+    "profileCreatedById",
+    "profileCreatedBy",
+    "relationWithCandiate",
+    "profileCount",
+    "gender",
+    "contact",
+    "state",
+    "city",
+    "BicholiyaId",
+    "gotraDetails",
+    "familyDetails",
+    "paymentStatus",
+    "adminVerificationStatus",
+    "bicholiyaVerificationStatus",
+    "candidate",
+    "createdAt",
+    "updatedAt",
+    "__v",
+  ];
+
+  for (const field of requiredFields) {
+    if (!(field in data) || data[field] === undefined || data[field] === null) {
+      return false;
+    }
+  }
+
+  // validate candidate array has required fields
+  if (Array.isArray(data.candidate)) {
+    for (const cand of data.candidate) {
+      const requiredCandidateFields: (keyof Candidate)[] = [
+        "_id",
+        "name",
+        "dob",
+        "address",
+        "city",
+        "mobile",
+        "qualification",
+        "college",
+        "occupation",
+        "jobDetail",
+        "language",
+        "serviceTypes",
+        "maritalStatus",
+        "drink",
+        "smoke",
+        "food",
+        "photos",
+        "createdAt",
+        "updatedAt",
+      ];
+      for (const field of requiredCandidateFields) {
+        if (!(field in cand) || cand[field] === undefined || cand[field] === null) {
+          return false;
+        }
+      }
+    }
+  } else {
+    return false;
+  }
+
+  return true;
+}
+

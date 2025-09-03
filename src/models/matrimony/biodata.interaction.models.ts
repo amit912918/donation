@@ -58,6 +58,14 @@ const BiodataInteractionSchema: Schema = new Schema(
             type: Date,
             default: ""
         },
+        requestCancelTime: {
+            type: Date,
+            default: ""
+        },
+        requestRemoveFromFavouriteTime: {
+            type: Date,
+            default: ""
+        },
         message: { type: String, default: "" },
     },
     { timestamps: true }
