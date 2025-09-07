@@ -97,7 +97,8 @@ const JobSchema: Schema = new Schema(
       {
         type: { 
           type: String, 
-          required: [true, "Document type is required"] 
+          required: false 
+          // required: [true, "Document type is required"] 
         },
         side: { 
           type: String, 
@@ -105,11 +106,13 @@ const JobSchema: Schema = new Schema(
             values: ["Front", "Back"], 
             message: "Document side must be either 'Front' or 'Back'" 
           }, 
-          required: [true, "Document side is required"] 
+          required: false  
+          // required: [true, "Document side is required"] 
         },
         path_name: { 
-          type: String, 
-          required: [true, "Document path_name is required"] 
+          type: String,
+          required: false
+          // required: [true, "Document path_name is required"] 
         }
       }
     ]
