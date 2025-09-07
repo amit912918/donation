@@ -16,12 +16,12 @@ export const createMission = async (req: RequestType, res: Response, next: NextF
 
     try {
         session.startTransaction();
-        const { error, value } = missionSchema.validate(req.body);
-        if (error) {
-            throw createError(400, error.details[0].message || "Missing some field")
-        }
+        // const { error, value } = missionSchema.validate(req.body);
+        // if (error) {
+        //     throw createError(400, error.details[0].message || "Missing some field")
+        // }
 
-        const data: IMissionData = value;
+        const data: IMissionData = req.body;
 
         // 📍 Create bank entry (embedded sub-document)
         const newBankEntry = {

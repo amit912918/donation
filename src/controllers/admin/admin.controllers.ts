@@ -87,7 +87,7 @@ export const getMentorList = async (req: RequestType, res: Response, next: NextF
             $lookup: {
             from: 'news',
             localField: '_id',
-            foreignField: 'publishedBy',
+            foreignField: 'publishedById',
             as: 'posts',
             },
         },

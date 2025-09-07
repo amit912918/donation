@@ -13,7 +13,7 @@ export const createJob = async (req: RequestType, res: Response, next: NextFunct
         const {
             jobTitle, jobDescription, minimumQualification, jobType,
             jobLocation, experience, salaryCriteria, jobAddress,
-            jobCity, businessName, contactNumber, hideContact, documents
+            jobCity, businessName, contactNumber, hideContact, documents = []
         } = req.body;
 
         const newJob = new Job({
