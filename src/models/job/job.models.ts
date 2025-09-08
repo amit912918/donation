@@ -92,7 +92,7 @@ const JobSchema: Schema = new Schema(
       required: [true, "Job creator (User) is required"] 
     },
     isPublished: { type: Boolean, default: false },
-    status: { type: String, Enum: ['Pending', 'Approved', 'Disapproved'], default: 'Pending' },
+    status: { type: String, Enum: ['Pending', 'Approved', 'Disapproved'], default: 'Approved' },
     documents: [
       {
         type: { 
