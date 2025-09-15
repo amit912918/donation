@@ -264,6 +264,39 @@ export const updateBioDataStatus = async (req: RequestType, res: Response, next:
     }
 };
 
+export const removeBicholiyaFromBiodata = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req?.payload?.appUserId;
+        const { biodataId } = req.body;
+
+        const biodata = await Biodata.findById(biodataId);
+        if (!biodata) throw createError(404, "Biodata not found");
+
+        const user = await User.findById(userId);
+        if (!user) throw createError(404, "User not found");
+
+        // Step 1: Set all existing statuses to inactive
+        const updated = await Biodata.updateOne(
+        { _id: biodataId },
+        {
+            BicholiyaId: null,
+            $set: { "assignBicholiyaSchema.$[].status": "inactive" } 
+        }
+        );
+
+        res.status(200).json({
+            error: false,
+            success: true,
+            message: "status updated successfully",
+            updatedData: updated
+        });
+    } catch (error: unknown) {
+        console.error("Error in biodata update status:", error);
+        const err = error instanceof Error ? error.message : "Internal server error";
+        next(createError(500, err));
+    }
+};
+
 export const getBiodataStatusWise = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { status, search, page = "1", limit = "10" } = req.query;
