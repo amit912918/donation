@@ -65,6 +65,16 @@ export interface ISibling {
     maritalStatus: string;
 }
 
+export interface IBicholiya {
+    bicholiyaId: string;
+    status: string;
+}
+
+const bicholiyaSchema = new Schema({
+    bicholiyaId: { type: mongoose.Schema.Types.ObjectId, ref: "User", unique: true, required: [true, "bicholiya id is required"] },
+    status: { type: String, ENUM: ['active', 'inactive'], default: 'active' },
+}, { timestamps: true });
+
 export interface IBiodata extends Document {
     profileCreatedById: mongoose.Types.ObjectId;
     profileCreatedBy: string;
@@ -73,6 +83,7 @@ export interface IBiodata extends Document {
     gender: string;
     contact: string;
     candidate: ICandidate[];
+    assignBicholiyaSchema: IBicholiya[];
     state: string;
     city: string;
     BicholiyaId: mongoose.Types.ObjectId;
@@ -119,9 +130,10 @@ const BiodataSchema: Schema = new Schema<IBiodata>({
     gender: { type: String, required: [true, "gender is required"] },
     contact: { type: String, required: [true, "contact is required"] },
     candidate: [CandidateSchema],
+    assignBicholiyaSchema: [bicholiyaSchema],
     state: { type: String, required: [true, "state is required"] },
     city: { type: String, required: [true, "city is required"] },
-    BicholiyaId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: [true, "bicholiya is required"] },
+    BicholiyaId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     gotraDetails: {
         selfGotra: { type: String },
         maaGotra: { type: String },
@@ -143,8 +155,8 @@ const BiodataSchema: Schema = new Schema<IBiodata>({
         additionalInfo: { type: String },
     },
     paymentStatus: { type: String, ENUM: ['pending', 'rejected', 'completed'], default: 'pending' },
-    adminVerificationStatus: { type: String, enum: ['approved', 'rejected', 'pending'], default: 'approved' }, // verified by admin
-    bicholiyaVerificationStatus: { type: String, enum: ['approved', 'rejected', 'pending'], default: 'approved' }, // maintained by bicholiya
+    adminVerificationStatus: { type: String, enum: ['approved', 'rejected', 'pending'], default: 'pending' }, // verified by admin
+    bicholiyaVerificationStatus: { type: String, enum: ['approved', 'rejected', 'pending'], default: 'pending' }, // maintained by bicholiya
     statusUpdateTime: {
             type: Date,
             default: ""
