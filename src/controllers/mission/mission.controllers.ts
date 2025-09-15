@@ -164,7 +164,7 @@ export const getAllMissions = async (req: RequestType, res: Response, next: Next
         };
 
         // Always enforce status filter
-        searchQuery.$and.push({ isPublished: true, status: "Approved" });
+        searchQuery.$and.push({ isPublished: true, adminVerificationStatus: "Approved" });
 
         if (typeof searchKey === 'string' && searchKey.trim() !== '') {
             const regex = new RegExp(searchKey.replace(/"/g, ''), 'i');
@@ -352,7 +352,7 @@ export const getLatestMission = async (req: RequestType, res: Response, next: Ne
         const mission = await Mission.find({
              missionCreatedBy: { $ne: req?.payload?.appUserId },
              isPublished: true,
-             status: "Approved"
+             adminVerificationStatus: "Approved"
             })
             .sort({ createdAt: -1 }).limit(5);
         
@@ -413,7 +413,7 @@ export const getMissionAnalyticsData = async (req: RequestType, res: Response, n
     try {
         const active_mission_count = await Mission.countDocuments({ 
             isPublished: true,
-            status: "Approved"
+            adminVerificationStatus: "Approved"
          });
 
         const distinctUser = await Donation.distinct("user");
