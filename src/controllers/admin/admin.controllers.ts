@@ -115,11 +115,78 @@ export const getMentorList = async (req: RequestType, res: Response, next: NextF
     }
 };
 
+// 📌 get all unassigned biodata
+export const getAllUnassignedBiodata = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { name } = req.query;
+
+        const filter: any = {};
+
+        if (typeof name === 'string') {
+            filter.name = new RegExp(name.replace(/"/g, ''), 'i');
+        }
+
+        let applicableBiodata: any = [];
+
+        const biodata = await Biodata.find(filter).populate("profileCreatedBy", "name email profile");
+
+        biodata.map((item: any, index) => {
+            if(!item?.bicholiyaId || item?.bicholiyaId === "" || item?.bicholiyaId === null || item?.bicholiyaId === undefined) {
+                applicableBiodata.push(item);
+            }
+        })
+
+        res.status(200).json({
+            error: false,
+            success: true,
+            message: "Biodata fetch detail successfully",
+            count: applicableBiodata.length,
+            data: applicableBiodata
+        });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
+// 📌 get all unassigned biodata
+export const assignBicholiya = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { biodataId, BicholiyaId } = req.body;
+        console.log(biodataId, BicholiyaId, "sfsd");
+
+        // Step 1: Set all existing statuses to inactive
+        await Biodata.updateOne(
+        { _id: biodataId },
+        { $set: { "assignBicholiyaSchema.$[].status": "inactive" } }
+        );
+
+        const updated_data = await Biodata.findByIdAndUpdate(
+        biodataId,
+        {
+            BicholiyaId: new mongoose.Types.ObjectId(BicholiyaId),
+            $addToSet: {
+            assignBicholiyaSchema: { bicholiyaId: new mongoose.Types.ObjectId(BicholiyaId), status: "active" }
+            }
+        },
+        { new: true }
+        );
+
+        res.status(200).json({
+            error: false,
+            success: true,
+            message: "Assign bicholiya successfully",
+            data: updated_data
+        });
+    } catch (error: any) {
+        next(createError(error.status || 500, error.message || "Internal Server Error"));
+    }
+};
+
 // 📌 Active mission by admin
 export const activeMissionByAdmin = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const missionId = req.params.missionId;
-        const { isPublished, status } = req.body;
+        const { status } = req.body;
 
         if (!["Pending", "Approved", "Disapproved"].includes(status)) {
             return next(createError(400, "Invalid mission status"));
@@ -128,7 +195,6 @@ export const activeMissionByAdmin = async (req: RequestType, res: Response, next
         const missionUpdateData = await Mission.findByIdAndUpdate(
             missionId,
             {
-                isPublished: isPublished ? true : false,
                 status
             },
             { new: true, runValidators: true }

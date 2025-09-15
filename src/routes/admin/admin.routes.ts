@@ -1,4 +1,4 @@
-import { activeBiodataByAdmin, activeJobByAdmin, activeMissionByAdmin, getMentorList, makeRemoveAdmin, makeRemoveBicholiya, makeRemoveMentor } from "@/controllers/admin/admin.controllers";
+import { activeBiodataByAdmin, activeJobByAdmin, activeMissionByAdmin, assignBicholiya, getAllUnassignedBiodata, getMentorList, makeRemoveAdmin, makeRemoveBicholiya, makeRemoveMentor } from "@/controllers/admin/admin.controllers";
 import { verifyAccessToken, verifyAdminAccessToken } from "@/middlewares/jwt/jwt.middleware";
 import { Router } from "express";
 
@@ -6,6 +6,8 @@ const appAdminRouterV1 = Router();
 
 appAdminRouterV1.put('/make-remove-admin/:userId', verifyAdminAccessToken, makeRemoveAdmin);
 appAdminRouterV1.get('/get-mentor-list', verifyAccessToken, getMentorList);
+appAdminRouterV1.get('/get-all-unassigned-biodata', verifyAccessToken, getAllUnassignedBiodata);
+appAdminRouterV1.post('/assign-bicholiya', verifyAccessToken, assignBicholiya);
 appAdminRouterV1.put('/make-remove-mentor/:userId', verifyAdminAccessToken, makeRemoveMentor);
 appAdminRouterV1.put('/make-remove-bicholiya/:userId', verifyAdminAccessToken, makeRemoveBicholiya);
 appAdminRouterV1.put('/update-mission-status-by-admin/:missionId', verifyAdminAccessToken, activeMissionByAdmin);
