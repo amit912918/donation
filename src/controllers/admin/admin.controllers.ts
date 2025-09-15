@@ -152,7 +152,6 @@ export const getAllUnassignedBiodata = async (req: RequestType, res: Response, n
 export const assignBicholiya = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { biodataId, BicholiyaId } = req.body;
-        console.log(biodataId, BicholiyaId, "sfsd");
 
         // Step 1: Set all existing statuses to inactive
         await Biodata.updateOne(
