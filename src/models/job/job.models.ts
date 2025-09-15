@@ -91,8 +91,8 @@ const JobSchema: Schema = new Schema(
       ref: "User", 
       required: [true, "Job creator (User) is required"] 
     },
-    isPublished: { type: Boolean, default: false },
-    status: { type: String, Enum: ['Pending', 'Approved', 'Disapproved'], default: 'Approved' },
+    isPublished: { type: Boolean, default: true },
+    adminVerificationStatus: { type: String, Enum: ['Pending', 'Approved', 'Disapproved'], default: 'Pending' },
     documents: [
       {
         type: { 

@@ -424,7 +424,7 @@ export const getJobForUser = async (req: RequestType, res: Response, next: NextF
         const filterWithExclusion = {
             ...filter,
             isPublished: true, 
-            status: "Approved",
+            adminVerificationStatus: "Approved",
             jobCreatedBy: { $ne: new mongoose.Types.ObjectId(userId) },
             _id: { $nin: reportedJobs } // exclude reported jobs
         };

@@ -38,7 +38,7 @@ const MissionSchema: Schema = new Schema(
         bankDetails: BankDetailsSchema,
         missionCreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: [true, "mission created by is required"] },
         isPublished: { type: Boolean, default: true },
-        status: { type: String, Enum: ['Pending', 'Approved', 'Disapproved'], default: 'Approved' },
+        adminVerificationStatus: { type: String, Enum: ['Pending', 'Approved', 'Disapproved'], default: 'Pending' },
         documents: [
             {
                 type: { type: String, required: [true, "document validation failed"] },
