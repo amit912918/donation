@@ -194,7 +194,7 @@ export const activeMissionByAdmin = async (req: RequestType, res: Response, next
         const missionUpdateData = await Mission.findByIdAndUpdate(
             missionId,
             {
-                status
+                adminVerificationStatus: status
             },
             { new: true, runValidators: true }
         );

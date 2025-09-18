@@ -17,7 +17,7 @@ const isProfileCompleted = async(appUserId: string) => {
 
 export const createBiodata = async (req: RequestType, res: Response, next: NextFunction) => {
     try {
-        const appUserId = req.payload?.appUserId;
+        const appUserId = req?.payload?.appUserId;
 
         let biodata = await Biodata.findOne({ profileCreatedById: appUserId });
 
@@ -685,7 +685,7 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
             updateData.isAccpted = true;
             updateData.isRejected = false;
             updateData.requestAcceptTime = new Date();
-            filter = { biodataId, biodataCreatedBy: userId, userId: senderId };
+            filter = { biodataId: new mongoose.Types.ObjectId(biodataId), biodataCreatedBy: new mongoose.Types.ObjectId(userId), userId: new mongoose.Types.ObjectId(senderId) };
         }
         if (type === "reject") {
             updateData.isRejected = true;
@@ -700,7 +700,7 @@ export const biodataSendAccept = async (req: RequestType, res: Response, next: N
 
         if (existingInteraction) {
             const updated = await BiodataInteraction.findOneAndUpdate(
-                { biodataId, biodataCreatedBy: biodataCreatedById },
+                filter,
                 { $set: updateData },
                 { new: true }
             );
