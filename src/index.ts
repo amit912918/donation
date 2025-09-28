@@ -42,7 +42,7 @@ app.use(cors({
 }));
 
 app.use("/assets", express.static(path.join(__dirname, "../assets")));
-app.use("/terms", express.static(path.join(__dirname, "./asset/files/terms.html")));
+app.use("/terms", express.static(path.join(__dirname, "./assets/files/terms.html")));
 app.use("/privacypolicy", express.static(path.join(__dirname, "./assets/files/privacypolicy.html")));
 app.use("/deleteaccount", express.static(path.join(__dirname, "./assets/files/deleteaccount.html")));
 
