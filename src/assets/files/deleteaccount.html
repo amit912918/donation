@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Delete My Account - Jyotiba Phule Family</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header {
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      color: white;
+      text-align: center;
+      padding: 2rem;
+    }
+    main {
+      max-width: 600px;
+      margin: 2rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    label { display: block; margin: 1rem 0 0.5rem; font-weight: bold; }
+    input, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 1.5rem;
+      background: #ef4444;
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button:hover { background: #dc2626; }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: #f1f1f1;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Delete My Account</h1>
+  <p>Jyotiba Phule Family App</p>
+</header>
+
+<main>
+  <p>If you want to permanently delete your account, please submit the request below. 
+  Your data will be removed within <strong>7 working days</strong>.</p>
+
+  <form action="process_delete.php" method="post">
+    <label for="phone">Registered Mobile Number (OTP Login)</label>
+    <input type="tel" id="phone" name="phone" required placeholder="Enter your registered number">
+
+    <label for="reason">Reason for Deletion (optional)</label>
+    <textarea id="reason" name="reason" rows="4" placeholder="Your feedback..."></textarea>
+
+    <button type="submit">Submit Delete Request</button>
+  </form>
+</main>
+
+<footer>
+  <p>&copy; 2025 Sankalp Seva Sansthan | help@jyotibaphulefamily.com</p>
+</footer>
+
+</body>
+</html>
