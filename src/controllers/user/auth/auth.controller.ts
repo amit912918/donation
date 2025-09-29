@@ -1,15 +1,25 @@
 import { NextFunction, Request, Response } from "express";
 import User from "@/models/auth/auth.models";
 import Profile from "@/models/auth/profile.models";
-import { registerSchema, updateProfileSchema } from "@/helpers/joi/auth/auth.joi";
+import {
+  registerSchema,
+  updateProfileSchema,
+} from "@/helpers/joi/auth/auth.joi";
 import { RegisterUserRequest } from "@/helpers/interface/auth/auth.interface";
-import { createError, generateOtp, generateToken, getCoordinates, validateContact } from "@/helpers/common/backend.functions";
+import {
+  createError,
+  generateOtp,
+  generateToken,
+  getCoordinates,
+  validateContact,
+} from "@/helpers/common/backend.functions";
 import Otp from "@/models/auth/otp.models";
 import { sendSms } from "@/helpers/service/communication/sms";
 import { sendEmail } from "@/helpers/service/communication/email";
 import { RequestType } from "@/helpers/shared/shared.type";
-import { Country, State, City } from 'country-state-city';
+import { Country, State, City } from "country-state-city";
 import Biodata from "@/models/matrimony/biodata.models";
+import { DeleteRequest } from "@/models/auth/account.delete.models";
 
 /**
  * @desc User Login
@@ -17,7 +27,11 @@ import Biodata from "@/models/matrimony/biodata.models";
  * @access Public
  */
 
-export const Login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const Login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     // Assuming a real authentication logic will be added later
     res.status(200).json({ message: "Login Successfully" });
@@ -27,9 +41,17 @@ export const Login = async (req: Request, res: Response, next: NextFunction): Pr
   }
 };
 
-export const sendOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const sendOtp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const { contact, type, isEmail }: { contact: string; type: string; isEmail: boolean } = req.body;
+    const {
+      contact,
+      type,
+      isEmail,
+    }: { contact: string; type: string; isEmail: boolean } = req.body;
 
     // Validate input
     if (!contact || !type || typeof isEmail === "undefined") {
@@ -37,7 +59,12 @@ export const sendOtp = async (req: Request, res: Response, next: NextFunction): 
     }
 
     // Validate OTP type
-    const validTypes: string[] = ["signup", "login", "resetPassword", "forgotPassword"];
+    const validTypes: string[] = [
+      "signup",
+      "login",
+      "resetPassword",
+      "forgotPassword",
+    ];
     if (!validTypes.includes(type)) {
       throw createError(400, "Invalid OTP type");
     }
@@ -57,21 +84,31 @@ export const sendOtp = async (req: Request, res: Response, next: NextFunction): 
       if (existingUser) {
         throw createError(400, "User already exists with this contact");
       }
-    } else if (type === "resetPassword" || type === "forgotPassword" || type === "login") {
+    } else if (
+      type === "resetPassword" ||
+      type === "forgotPassword" ||
+      type === "login"
+    ) {
       existingUser = isEmail
         ? await User.findOne({ email: contact })
         : await User.findOne({ mobile: contact });
     }
 
     let otpValue: string;
-    if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "production") {
+    if (
+      process.env.NODE_ENV === "development" ||
+      process.env.NODE_ENV === "production"
+    ) {
       otpValue = "123456";
     } else {
       otpValue = generateOtp();
     }
 
     // Invalidate existing OTPs of the same type before creating a new one
-    await Otp.updateMany({ sentTo: contact, type, isValid: true }, { $set: { isValid: false } });
+    await Otp.updateMany(
+      { sentTo: contact, type, isValid: true },
+      { $set: { isValid: false } }
+    );
 
     const expiryTime = new Date(Date.now() + 5 * 60 * 1000);
 
@@ -108,12 +145,38 @@ export const sendOtp = async (req: Request, res: Response, next: NextFunction): 
  * @route POST /auth/register-user
  * @access Public
  */
-export const registerUser = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+export const registerUser = async (
+  req: RequestType,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const { name, gender, dob, address, city, state, country, language, email, mobile }: RegisterUserRequest = req.body;
+    const {
+      name,
+      gender,
+      dob,
+      address,
+      city,
+      state,
+      country,
+      language,
+      email,
+      mobile,
+    }: RegisterUserRequest = req.body;
 
     // Validate request body
-    const { error } = registerSchema.validate({ name, gender, dob, address, city, state, country, language, email, mobile });
+    const { error } = registerSchema.validate({
+      name,
+      gender,
+      dob,
+      address,
+      city,
+      state,
+      country,
+      language,
+      email,
+      mobile,
+    });
 
     if (error) {
       console.log(error?.details[0].message);
@@ -123,7 +186,9 @@ export const registerUser = async (req: RequestType, res: Response, next: NextFu
     // Check if the user already exists
     const existingUser = await User.findOne({ $or: [{ email }, { mobile }] });
     if (existingUser) {
-      return next(createError(400, "User with this email or mobile already exists."));
+      return next(
+        createError(400, "User with this email or mobile already exists.")
+      );
     }
 
     const coordinate: any = await getCoordinates(city, state, country);
@@ -176,13 +241,27 @@ export const registerUser = async (req: RequestType, res: Response, next: NextFu
   }
 };
 
-export const updateUserProfile = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+export const updateUserProfile = async (
+  req: RequestType,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const userId = req.payload?.appUserId;
 
-    const { name, gender, dob, address, city, state, country, Language } = req.body;
+    const { name, gender, dob, address, city, state, country, Language } =
+      req.body;
 
-    const { error } = updateProfileSchema.validate({ name, gender, dob, address, city, state, country, Language });
+    const { error } = updateProfileSchema.validate({
+      name,
+      gender,
+      dob,
+      address,
+      city,
+      state,
+      country,
+      Language,
+    });
     if (error) {
       return next(createError(400, error.details[0].message));
     }
@@ -210,12 +289,13 @@ export const updateUserProfile = async (req: RequestType, res: Response, next: N
       updateData.profile = profileUpdates;
     }
 
-    const updatedProfile = await User.findByIdAndUpdate(userId, updateData, { new: true });
+    const updatedProfile = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    });
 
     if (!updatedProfile) {
       return next(createError(404, "User not found"));
     }
-
 
     res.status(200).json({
       message: "Profile updated successfully.",
@@ -227,7 +307,11 @@ export const updateUserProfile = async (req: RequestType, res: Response, next: N
   }
 };
 
-export const updateUserProfileImage = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+export const updateUserProfileImage = async (
+  req: RequestType,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const userId = req.payload?.appUserId;
 
@@ -262,54 +346,71 @@ export const updateUserProfileImage = async (req: RequestType, res: Response, ne
   }
 };
 
-export const getUserProfile = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+export const getUserProfile = async (
+  req: RequestType,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const userId = req.payload?.appUserId;
 
-    const user = await User.findById(userId).select('-password');
+    const user = await User.findById(userId).select("-password");
     const biodata_info = await Biodata.findOne({ profileCreatedById: userId });
     if (!user) {
-      return next(createError(404, 'User not found'));
+      return next(createError(404, "User not found"));
     }
 
     res.status(200).json({
       error: false,
       message: "Profile get successfully!",
       user,
-      biodata_info
+      biodata_info,
     });
   } catch (error: any) {
-    console.error('Error fetching user profile:', error);
-    return next(createError(500, error.message || 'Internal server error'));
+    console.error("Error fetching user profile:", error);
+    return next(createError(500, error.message || "Internal server error"));
   }
 };
 
-export const getAllProfile = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+export const getAllProfile = async (
+  req: RequestType,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-
-    const users = await User.find().select('-password');
+    const users = await User.find().select("-password");
     if (users.length === 0) {
-      return next(createError(404, 'No user not found'));
+      return next(createError(404, "No user not found"));
     }
 
     res.status(200).json({
       error: false,
       success: true,
       message: "Profile get successfully!",
-      data: users
+      data: users,
     });
   } catch (error: any) {
-    console.error('Error fetching user profile:', error);
-    return next(createError(500, error.message || 'Internal server error'));
+    console.error("Error fetching user profile:", error);
+    return next(createError(500, error.message || "Internal server error"));
   }
 };
 
-export const verifyOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const verifyOtp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const { contact, otp, isEmail, type }: { contact: string; otp: string; isEmail: boolean; type: string } = req.body;
+    const {
+      contact,
+      otp,
+      isEmail,
+      type,
+    }: { contact: string; otp: string; isEmail: boolean; type: string } =
+      req.body;
 
     // Validate input
-    if (!contact || !otp || typeof isEmail === 'undefined' || !type) {
+    if (!contact || !otp || typeof isEmail === "undefined" || !type) {
       throw createError(400, "Contact, OTP, isEmail, and type are required");
     }
 
@@ -319,7 +420,12 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
     }
 
     // Validate OTP type
-    const validTypes: string[] = ['signup', 'login', 'resetPassword', 'forgotPassword'];
+    const validTypes: string[] = [
+      "signup",
+      "login",
+      "resetPassword",
+      "forgotPassword",
+    ];
     if (!validTypes.includes(type)) {
       throw createError(400, "Invalid OTP type");
     }
@@ -342,14 +448,14 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
     }
 
     let existingUser: any = null;
-    if (type === 'signup') {
+    if (type === "signup") {
       let existing = true;
       existingUser = await User.findOne({ mobile: contact });
       if (!existingUser) {
         existing = false;
         const userData = {
-          name: 'NA',
-          password: '12345', // Plain password, will be hashed in the pre-save hook
+          name: "NA",
+          password: "12345", // Plain password, will be hashed in the pre-save hook
           mobile: contact,
           confirmed: true,
         };
@@ -359,67 +465,52 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
         existingUser = user;
       }
       const token = generateToken(existingUser._id, existingUser?.role);
-      res.status(200).json({ message: 'OTP verified successfully', token, user: existingUser, existing });
+      res
+        .status(200)
+        .json({
+          message: "OTP verified successfully",
+          token,
+          user: existingUser,
+          existing,
+        });
       return;
     }
-    if (type === 'login') {
+    if (type === "login") {
       existingUser = await User.findOne({ mobile: contact });
       res.status(200).json({
-        message: 'OTP verified successfully',
-        token: existingUser ? generateToken(existingUser._id, existingUser?.role) : null,
+        success: true,
+        message: "OTP verified successfully",
+        token: existingUser
+          ? generateToken(existingUser._id, existingUser?.role)
+          : null,
         user: existingUser ? existingUser : null,
-        existing: existingUser ? true : false
+        existing: existingUser ? true : false,
       });
       return;
     }
 
-    res.status(200).json({ message: 'OTP verified successfully' });
+    res.status(200).json({
+      success: true,
+      error: false,
+      message: "OTP verified successfully",
+    });
   } catch (error: any) {
     console.error("Error in verify otp", error);
     next(createError(500, error?.message || "Internal server error"));
   }
 };
 
-export const getAllCountries = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getAllCountries = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    
     const countries = Country.getAllCountries();
     res.status(200).json({
       error: false,
       success: true,
-      countries
-    });   
-  } catch (error: any) {
-    console.error("Error in get all country", error);
-    next(createError(500, error?.message || "Internal server error"));
-  }
-};
-
-export const getAllState = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-
-    const { countryCode } = req.params;
-    const states = State.getStatesOfCountry(countryCode);
-    res.status(200).json({
-      error: false,
-      success: true,
-      states
-    });   
-  } catch (error: any) {
-    console.error("Error in get all country", error);
-    next(createError(500, error?.message || "Internal server error"));
-  }
-};
-
-export const getAllCity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-   
-    const { countryCode, stateCode } = req.params;
-    const cities = City.getCitiesOfState(countryCode, stateCode);
-    res.status(200).json({
-      error: false,
-      success: true,
-      cities
+      countries,
     });
   } catch (error: any) {
     console.error("Error in get all country", error);
@@ -427,35 +518,129 @@ export const getAllCity = async (req: Request, res: Response, next: NextFunction
   }
 };
 
-export const getSpecificState = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getAllState = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-
-    const { countryCode = "IN" } = req.params;
+    const { countryCode } = req.params;
     const states = State.getStatesOfCountry(countryCode);
     res.status(200).json({
       error: false,
       success: true,
-      states
-    });   
+      states,
+    });
   } catch (error: any) {
     console.error("Error in get all country", error);
     next(createError(500, error?.message || "Internal server error"));
   }
 };
 
-export const getSpecificCity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getAllCity = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-   
+    const { countryCode, stateCode } = req.params;
+    const cities = City.getCitiesOfState(countryCode, stateCode);
+    res.status(200).json({
+      error: false,
+      success: true,
+      cities,
+    });
+  } catch (error: any) {
+    console.error("Error in get all country", error);
+    next(createError(500, error?.message || "Internal server error"));
+  }
+};
+
+export const getSpecificState = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { countryCode = "IN" } = req.params;
+    const states = State.getStatesOfCountry(countryCode);
+    res.status(200).json({
+      error: false,
+      success: true,
+      states,
+    });
+  } catch (error: any) {
+    console.error("Error in get all country", error);
+    next(createError(500, error?.message || "Internal server error"));
+  }
+};
+
+export const getSpecificCity = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
     const { stateCode } = req.params;
     const countryCode = "IN";
     const cities = City.getCitiesOfState(countryCode, stateCode);
     res.status(200).json({
       error: false,
       success: true,
-      cities
+      cities,
     });
   } catch (error: any) {
     console.error("Error in get all country", error);
     next(createError(500, error?.message || "Internal server error"));
+  }
+};
+
+// Handle form submit
+export const deleteProcess = async (req: Request, res: Response) => {
+  try {
+    const { phone, reason } = req.body as { phone: string; reason?: string };
+
+    // Prevent duplicate requests
+    const existing = await DeleteRequest.findOne({
+      mobile: phone,
+      status: "pending",
+    });
+    if (existing) {
+        res
+        .status(400)
+        .json({ message: "Delete request already pending" });
+        return;
+    }
+
+    const request = new DeleteRequest({ mobile: phone, reason });
+    await request.save();
+
+    res.send(`
+      <!doctype html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width,initial-scale=1"/>
+        <title>Account Deleted</title>
+      </head>
+      <body style="margin:0; font-family:Segoe UI, Roboto, sans-serif; background:#fffaf5; color:#2b2b2b; display:flex; align-items:center; justify-content:center; height:100vh;">
+
+        <div style="background:#fff; border-radius:12px; padding:32px 28px; max-width:480px; text-align:center; box-shadow:0 6px 20px rgba(0,0,0,0.1);">
+          <div style="font-size:48px; margin-bottom:16px;">✅</div>
+          <h2 style="margin:0 0 12px; color:#ff6a00;">Account Deletion Requested</h2>
+          <p style="margin:0 0 18px; font-size:15px; line-height:1.5;">
+            Your account with phone <b>${phone}</b> will be deleted within <strong>7 working days</strong>.
+          </p>
+          <a href="/deleteaccount" style="display:inline-block; margin-top:12px; padding:12px 22px; background:#ff6a00; color:#fff; font-weight:600; border-radius:8px; text-decoration:none; box-shadow:0 4px 12px rgba(255,106,0,0.25);">
+            Go to Home
+          </a>
+        </div>
+
+      </body>
+      </html>
+    `);
+  } catch (err) {
+    console.error("Error processing request:", err);
+    res.status(500).send("Error processing request");
   }
 };

@@ -50,6 +50,7 @@
       background: #f1f1f1;
       margin-top: 2rem;
     }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -60,13 +61,27 @@
 </header>
 
 <main>
-  <p>If you want to permanently delete your account, please submit the request below. 
+  <p>If you want to permanently delete your account, please verify with OTP. 
   Your data will be removed within <strong>7 working days</strong>.</p>
 
-  <form action="process_delete.php" method="post">
+  <!-- Step 1: Enter Phone -->
+  <div id="step1">
     <label for="phone">Registered Mobile Number (OTP Login)</label>
     <input type="tel" id="phone" name="phone" required placeholder="Enter your registered number">
+    <button type="button" onclick="sendOtp()">Send OTP</button>
+  </div>
 
+  <!-- Step 2: Enter OTP -->
+  <div id="step2" class="hidden">
+    <label for="otp">Enter OTP</label>
+    <input type="text" id="otp" name="otp" required placeholder="Enter OTP">
+    <button type="button" onclick="verifyOtp()">Verify OTP</button>
+  </div>
+
+  <!-- Step 3: Final Submit -->
+  <form id="deleteForm" action="/v1/auth/process_delete" method="post" class="hidden">
+    <input type="hidden" id="finalPhone" name="phone">
+    
     <label for="reason">Reason for Deletion (optional)</label>
     <textarea id="reason" name="reason" rows="4" placeholder="Your feedback..."></textarea>
 
@@ -77,6 +92,51 @@
 <footer>
   <p>&copy; 2025 Sankalp Seva Sansthan | help@jyotibaphulefamily.com</p>
 </footer>
+
+<script>
+async function sendOtp() {
+  const phone = document.getElementById("phone").value;
+  if (!phone) return alert("Please enter your phone number");
+
+  const res = await fetch("/v1/auth/send-otp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ contact: phone, type: 'login', isEmail: 0 })
+  });
+  const data = await res.json();
+  console.log(data, "data");
+
+  if (data.otp) {
+    alert("OTP sent to your mobile");
+    document.getElementById("step1").classList.add("hidden");
+    document.getElementById("step2").classList.remove("hidden");
+  } else {
+    console.log("Error in file otp send", data);
+    alert("Error: " + data.message);
+  }
+}
+
+async function verifyOtp() {
+  const phone = document.getElementById("phone").value;
+  const otp = document.getElementById("otp").value;
+
+  const res = await fetch("/v1/auth/verify-otp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ contact: phone, otp, isEmail: 0, type: 'login' })
+  });
+  const data = await res.json();
+
+  if (data.success) {
+    alert("OTP verified successfully!");
+    document.getElementById("step2").classList.add("hidden");
+    document.getElementById("deleteForm").classList.remove("hidden");
+    document.getElementById("finalPhone").value = phone;
+  } else {
+    alert("Invalid OTP");
+  }
+}
+</script>
 
 </body>
 </html>
