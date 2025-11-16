@@ -32,8 +32,15 @@ const profileSchema = new Schema<IProfile>(
         state: { type: String, default: "" },
         country: { type: String, default: "" },
         location: {
-            type: { type: String, enum: ["Point"], default: "Point" },
-            coordinates: { type: [Number], required: false }, // [longitude, latitude]
+        type: {
+            type: String,
+            enum: ["Point"],
+            required: false
+        },
+        coordinates: {
+            type: [Number],
+            required: false
+        }
         },
         phone: { type: String },
         bio: { type: String },
